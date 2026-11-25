@@ -49,14 +49,14 @@ export default function KeyDisplayModal({ data, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-lg w-full overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-100 max-w-lg w-full overflow-hidden flex flex-col max-h-[94vh] animate-in zoom-in-95 duration-200">
         
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
-            <h3 className="font-extrabold text-slate-900 text-base sm:text-lg">
+            <h3 className="font-extrabold text-slate-900 text-sm sm:text-lg">
               Files Ready for Transfer
             </h3>
           </div>
@@ -69,24 +69,24 @@ export default function KeyDisplayModal({ data, onClose }) {
         </div>
 
         {/* Body */}
-        <div className="p-6 overflow-y-auto space-y-6">
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-6">
           
           {/* Big 6-Digit Key Box */}
-          <div className="text-center space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold">
+          <div className="text-center space-y-1.5 sm:space-y-2">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-[11px] font-bold">
               <Globe className="w-3.5 h-3.5" />
               <span>Works on Any Network (4G / 5G / Wi-Fi)</span>
             </div>
 
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-600 pt-1">
+            <p className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-600 pt-0.5">
               Enter this 6-digit key on recipient device
             </p>
 
             <div
               onClick={copyKeyToClipboard}
-              className="group cursor-pointer inline-flex items-center justify-center gap-4 bg-rose-50/70 hover:bg-rose-100/70 border-2 border-rose-300/80 rounded-2xl px-6 py-4 shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="group cursor-pointer inline-flex items-center justify-center gap-2.5 sm:gap-4 bg-rose-50/70 hover:bg-rose-100/70 border-2 border-rose-300/80 rounded-2xl px-4 py-3 sm:px-6 sm:py-4 shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
-              <span className="font-mono text-4xl sm:text-5xl font-black text-rose-600 tracking-wider">
+              <span className="font-mono text-3xl sm:text-5xl font-black text-rose-600 tracking-wider">
                 {formatKey(data.key)}
               </span>
               <button

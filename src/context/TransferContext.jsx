@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { getServerHealth } from '../services/api';
 
 const TransferContext = createContext(null);
@@ -24,8 +24,9 @@ export function TransferProvider({ children }) {
     clientUrl: window.location.origin,
   });
 
-  // Toast notifications
+  // Toast notifications (Max 1 toast at a time with deduplication)
   const [toasts, setToasts] = useState([]);
+  const lastToastRef = useRef({ message: '', time: 0 });
 
   useEffect(() => {
     try {
@@ -52,11 +53,23 @@ export function TransferProvider({ children }) {
     };
   }, []);
 
-  const addToast = (message, type = 'info', duration = 3500) => {
-    const id = Date.now() + Math.random().toString();
-    setToasts((prev) => [...prev, { id, message, type }]);
+  // Strict 1-Toast Policy: Replaces any current toast, prevents double popups on 1 click
+  const addToast = (message, type = 'info', duration = 3000) => {
+    if (!message) return;
+    const now = Date.now();
+
+    // Prevent duplicate toast if identical message was triggered within 2 seconds
+    if (lastToastRef.current.message === message && now - lastToastRef.current.time < 2000) {
+      return;
+    }
+    lastToastRef.current = { message, time: now };
+
+    const id = now.toString();
+    // Only 1 toast visible at a time
+    setToasts([{ id, message, type }]);
+
     setTimeout(() => {
-      removeToast(id);
+      setToasts((prev) => prev.filter((t) => t.id !== id));
     }, duration);
   };
 

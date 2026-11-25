@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Download, QrCode, Clipboard, ArrowRight, Loader2, Smartphone, Check, Sparkles, CheckCircle2 } from 'lucide-react';
 import { getTransferByKey, getDownloadUrl } from '../services/api';
 import { useTransfer } from '../context/TransferContext';
@@ -9,7 +9,7 @@ export default function ReceiveCard({ className = '', onReceiveSuccess = null })
   const [keyInput, setKeyInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
-  const [downloadSuccess, setDownloadSuccess] = useState(null); // { files: [], key: '' }
+  const [downloadSuccess, setDownloadSuccess] = useState(null);
   const { setActiveModal, addToast, addToHistory } = useTransfer();
 
   // Auto-receive function that IMMEDIATELY downloads the file to mobile
@@ -23,8 +23,6 @@ export default function ReceiveCard({ className = '', onReceiveSuccess = null })
 
       // 1. Fetch file info from central cloud server
       const transfer = await getTransferByKey(cleanKey);
-
-      addToast(`Key matched! Found ${transfer.files.length} file(s). Starting download...`, 'success');
 
       // 2. AUTOMATIC DOWNLOAD: Trigger browser download for every file immediately!
       for (let i = 0; i < transfer.files.length; i++) {
@@ -45,7 +43,6 @@ export default function ReceiveCard({ className = '', onReceiveSuccess = null })
           totalSize: file.size,
         });
 
-        // Small delay if multiple files so browser doesn't block
         if (transfer.files.length > 1) {
           await new Promise((r) => setTimeout(r, 600));
         }
@@ -57,7 +54,8 @@ export default function ReceiveCard({ className = '', onReceiveSuccess = null })
         key: cleanKey,
       });
 
-      addToast('Download started automatically to your device!', 'success');
+      // ONLY 1 Single Clear Toast!
+      addToast(`Downloading ${transfer.files.length} file(s) automatically...`, 'success');
 
       if (onReceiveSuccess) {
         onReceiveSuccess(transfer);
@@ -86,9 +84,10 @@ export default function ReceiveCard({ className = '', onReceiveSuccess = null })
       const digits = text.replace(/[^0-9]/g, '').slice(0, 6);
       if (digits.length > 0) {
         setKeyInput(digits);
-        addToast(`Pasted key: ${digits}`, 'info');
         if (digits.length === 6) {
           executeAutoDownload(digits);
+        } else {
+          addToast(`Pasted key: ${digits}`, 'info');
         }
       } else {
         addToast('No 6-digit key found in clipboard', 'error');
@@ -105,26 +104,26 @@ export default function ReceiveCard({ className = '', onReceiveSuccess = null })
 
   return (
     <div
-      className={`bg-white rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-200/40 p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 ${className}`}
+      className={`bg-white rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-200/40 p-4 sm:p-7 flex flex-col justify-between transition-all duration-300 ${className}`}
     >
       <div>
-        {/* Card Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+        {/* Card Header (Responsive wrap on small mobile) */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 sm:pb-4 border-b border-slate-100 gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-white font-bold">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-white font-bold shrink-0 text-sm sm:text-base">
               2
             </div>
             <div>
-              <h3 className="font-extrabold text-lg sm:text-xl text-slate-900 tracking-tight">
+              <h3 className="font-extrabold text-base sm:text-xl text-slate-900 tracking-tight">
                 Receive Files
               </h3>
-              <p className="text-xs text-slate-500">
-                Auto-downloads as soon as 6-digit key is typed
+              <p className="text-[11px] sm:text-xs text-slate-500">
+                Auto-downloads when 6-digit key is typed
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 self-start sm:self-auto">
             <button
               type="button"
               onClick={() => setIsScannerOpen(true)}
@@ -146,13 +145,13 @@ export default function ReceiveCard({ className = '', onReceiveSuccess = null })
         </div>
 
         {/* 6-Digit Key Input Box */}
-        <form onSubmit={handleManualSubmit} className="mt-6 space-y-4">
-          <div className="space-y-2">
+        <form onSubmit={handleManualSubmit} className="mt-5 sm:mt-6 space-y-4">
+          <div className="space-y-1.5 sm:space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-600 block">
+              <label className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-600 block">
                 Enter 6-Digit Key
               </label>
-              <span className="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+              <span className="text-[10px] sm:text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                 ⚡ Instant Auto-Download
               </span>
             </div>
@@ -166,27 +165,27 @@ export default function ReceiveCard({ className = '', onReceiveSuccess = null })
                 value={keyInput}
                 onChange={handleInputChange}
                 placeholder="000 000"
-                className="w-full text-center tracking-[0.4em] font-mono text-3xl sm:text-4xl font-extrabold py-5 px-4 rounded-2xl border-2 border-slate-200 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 outline-none transition-all placeholder:text-slate-300 text-slate-900 bg-slate-50/50"
+                className="w-full text-center tracking-[0.2em] sm:tracking-[0.35em] font-mono text-2xl sm:text-3xl md:text-4xl font-extrabold py-3.5 sm:py-5 px-2 sm:px-4 rounded-2xl border-2 border-slate-200 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 outline-none transition-all placeholder:text-slate-300 text-slate-900 bg-slate-50/50"
               />
               {isLoading && (
-                <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                  <Loader2 className="w-6 h-6 text-rose-500 animate-spin" />
+                <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2">
+                  <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 text-rose-500 animate-spin" />
                 </div>
               )}
               {!isLoading && keyInput.length === 6 && (
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
-                  <Check className="w-4 h-4" />
+                <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                  <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
               )}
             </div>
           </div>
 
           {/* Quick Digit Status Indicators */}
-          <div className="flex justify-center gap-2 pt-1">
+          <div className="flex justify-center gap-1.5 sm:gap-2 pt-1">
             {[0, 1, 2, 3, 4, 5].map((idx) => (
               <span
                 key={idx}
-                className={`w-2 h-2 rounded-full transition-colors ${
+                className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-colors ${
                   keyInput.length > idx ? 'bg-rose-500 scale-110' : 'bg-slate-200'
                 }`}
               />
@@ -195,19 +194,19 @@ export default function ReceiveCard({ className = '', onReceiveSuccess = null })
 
           {/* Success Auto-Download Notification Box */}
           {downloadSuccess && (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 space-y-2 animate-in zoom-in-95">
-              <div className="flex items-center gap-2.5 text-emerald-800 font-bold text-xs sm:text-sm">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 sm:p-4 space-y-2 animate-in zoom-in-95">
+              <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs sm:text-sm">
+                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 shrink-0" />
                 <span>Download Started Automatically!</span>
               </div>
-              <p className="text-xs text-emerald-700 leading-relaxed">
-                {downloadSuccess.files.length} file ({formatBytes(downloadSuccess.totalSize)}) is now saving to your device's Downloads folder.
+              <p className="text-[11px] sm:text-xs text-emerald-700 leading-relaxed">
+                {downloadSuccess.files.length} file ({formatBytes(downloadSuccess.totalSize)}) is saving to your device.
               </p>
-              <div className="pt-1">
+              <div className="pt-0.5">
                 <button
                   type="button"
                   onClick={() => executeAutoDownload(keyInput)}
-                  className="text-xs font-bold text-emerald-800 underline underline-offset-2 hover:text-emerald-900"
+                  className="text-xs font-bold text-emerald-800 underline underline-offset-2 hover:text-emerald-950"
                 >
                   Click here if download didn't start
                 </button>
@@ -216,24 +215,24 @@ export default function ReceiveCard({ className = '', onReceiveSuccess = null })
           )}
 
           {/* Cross-City Info Hint */}
-          <div className="bg-slate-50 border border-slate-200/70 rounded-2xl p-4 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-white shadow-xs border border-slate-200 flex items-center justify-center text-slate-700 shrink-0">
-              <Smartphone className="w-5 h-5 text-rose-500" />
+          <div className="bg-slate-50 border border-slate-200/70 rounded-2xl p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white shadow-xs border border-slate-200 flex items-center justify-center text-slate-700 shrink-0">
+              <Smartphone className="w-4 h-4 sm:w-5 sm:h-5 text-rose-500" />
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              <strong>Cross-City Transfer:</strong> Sender in Pune uploads & shares the key. When you enter it in Sangamner, the file downloads automatically to your mobile!
+            <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed">
+              <strong>Cross-City Transfer:</strong> Sender in Pune uploads & shares key. When you enter it in Sangamner, the file downloads automatically!
             </p>
           </div>
         </form>
       </div>
 
       {/* Card Action Section */}
-      <div className="mt-6 pt-4 border-t border-slate-100 space-y-3">
+      <div className="mt-5 sm:mt-6 pt-3 sm:pt-4 border-t border-slate-100 space-y-2.5 sm:space-y-3">
         {/* Receive Button */}
         <button
           onClick={handleManualSubmit}
           disabled={keyInput.length !== 6 || isLoading}
-          className={`w-full py-3.5 rounded-2xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg transition-all ${
+          className={`w-full py-3 sm:py-3.5 rounded-2xl font-bold text-xs sm:text-sm md:text-base flex items-center justify-center gap-2 shadow-lg transition-all ${
             keyInput.length !== 6 || isLoading
               ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
               : 'bg-slate-900 hover:bg-slate-800 text-white shadow-slate-900/25 hover:shadow-slate-900/35 hover:scale-[1.01] active:scale-[0.99]'
@@ -241,18 +240,18 @@ export default function ReceiveCard({ className = '', onReceiveSuccess = null })
         >
           {isLoading ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
               <span>Connecting & Downloading...</span>
             </>
           ) : (
             <>
-              <Download className="w-5 h-5" />
+              <Download className="w-4 h-4" />
               <span>Download Files Now</span>
             </>
           )}
         </button>
 
-        <p className="text-[11px] text-center text-slate-500">
+        <p className="text-[10px] sm:text-[11px] text-center text-slate-500">
           Transfers directly through cloud relay across any distance. No account needed.
         </p>
       </div>
@@ -263,7 +262,6 @@ export default function ReceiveCard({ className = '', onReceiveSuccess = null })
         onClose={() => setIsScannerOpen(false)}
         onScanSuccess={(scannedKey) => {
           setKeyInput(scannedKey);
-          addToast(`QR Code scanned! Key: ${scannedKey}. Auto-downloading...`, 'success');
           executeAutoDownload(scannedKey);
         }}
       />

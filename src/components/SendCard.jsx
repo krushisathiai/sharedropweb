@@ -119,20 +119,20 @@ export default function SendCard({ className = '', onTransferComplete = null }) 
 
   return (
     <div
-      className={`bg-white rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-200/40 p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 ${className}`}
+      className={`bg-white rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-200/40 p-4 sm:p-7 flex flex-col justify-between transition-all duration-300 ${className}`}
     >
       <div>
         {/* Card Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-100">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 font-bold">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 font-bold shrink-0 text-sm sm:text-base">
               1
             </div>
             <div>
-              <h3 className="font-extrabold text-lg sm:text-xl text-slate-900 tracking-tight">
+              <h3 className="font-extrabold text-base sm:text-xl text-slate-900 tracking-tight">
                 Send Files
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-[11px] sm:text-xs text-slate-500">
                 Videos, documents, photos, audio & folders
               </p>
             </div>

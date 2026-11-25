@@ -76,39 +76,39 @@ export default function Home() {
   ];
 
   return (
-    <div className="space-y-16 sm:space-y-24 pb-16">
+    <div className="space-y-12 sm:space-y-20 pb-12 overflow-x-hidden">
       
       {/* Hero Section */}
-      <section className="relative pt-8 sm:pt-14 overflow-hidden">
+      <section className="relative pt-6 sm:pt-14 overflow-hidden">
         {/* Subtle background glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-gradient-to-b from-rose-50/70 via-slate-50/30 to-transparent pointer-events-none -z-10 rounded-full blur-3xl opacity-60" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           
           {/* Hero Headings */}
-          <div className="text-center max-w-3xl mx-auto space-y-4">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-xs font-bold tracking-wide shadow-2xs">
+          <div className="text-center max-w-3xl mx-auto space-y-3 sm:space-y-4">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-[11px] sm:text-xs font-bold tracking-wide shadow-2xs">
               <Globe className="w-3.5 h-3.5" />
               <span>Global Cloud Relay • Works Across 4G / 5G / Wi-Fi Networks</span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.15]">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.2]">
               Transfer Any <span className="text-rose-500">Video & Document</span> Across Devices Instantly
             </h1>
 
-            <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto">
+            <p className="text-xs sm:text-base text-slate-600 leading-relaxed max-w-2xl mx-auto px-1">
               No shared Wi-Fi required! Upload from one phone, enter the 6-digit key on another mobile or PC on any network, and download immediately in 100% original quality.
             </p>
           </div>
 
           {/* Dual Card Section (Send & Receive) */}
-          <div className="mt-10 sm:mt-12 max-w-5xl mx-auto">
+          <div className="mt-8 sm:mt-12 max-w-5xl mx-auto">
             {/* Mobile Tab Switcher */}
-            <div className="flex sm:hidden p-1 bg-slate-200/70 rounded-2xl mb-4">
+            <div className="flex sm:hidden p-1 bg-slate-200/80 rounded-xl mb-3 shadow-inner">
               <button
                 type="button"
                 onClick={() => setActiveTab('send')}
-                className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
                   activeTab === 'send'
                     ? 'bg-white text-rose-600 shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
@@ -119,7 +119,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setActiveTab('receive')}
-                className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
                   activeTab === 'receive'
                     ? 'bg-white text-slate-900 shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
