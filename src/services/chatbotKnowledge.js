@@ -1,59 +1,66 @@
 /**
  * ShareDrop Intelligent Troubleshooting & Support Knowledge Base
- * Supports queries in Hinglish, Hindi, and English.
+ * English Knowledge Engine supporting English, Hindi, and Hinglish queries.
  */
 
 export const QUICK_PROMPTS = [
   {
     id: 'download_issue',
-    label: '📥 File Download nahi ho raha?',
-    query: 'download nahi ho raha',
+    label: '📥 File not downloading?',
+    query: 'download not working',
   },
   {
     id: 'key_expired',
-    label: '🔑 Key expired / Invalid key error?',
-    query: 'key expired invalid key',
+    label: '🔑 Key expired or invalid?',
+    query: 'key expired or invalid key',
   },
   {
     id: 'cross_network',
-    label: '🌍 Pune to Sangamner transfer kaise karein?',
-    query: 'pune sangamner different network kaise bheje',
+    label: '🌍 How to transfer between different cities & networks?',
+    query: 'how to transfer different networks pune to sangamner',
   },
   {
     id: 'qr_camera',
-    label: '📷 Camera / QR Scan kaam nahi kar raha?',
-    query: 'camera open nahi ho raha qr code scan',
+    label: '📷 Camera / QR scanner not opening?',
+    query: 'camera permission qr code scanner not working',
   },
   {
-    id: 'history_blank',
-    label: '🔒 History kyu nahi dikh rahi?',
-    query: 'history blank hai data nahi dikh raha',
+    id: 'history_empty',
+    label: '🔒 Why is transfer history empty?',
+    query: 'why is transfer history empty data missing',
   },
   {
     id: 'server_wake',
-    label: '⏳ Server slow ya connecting aa raha hai?',
-    query: 'server connecting render slow',
+    label: '⏳ Server slow or connecting?',
+    query: 'server connecting slow render wakeup',
+  },
+  {
+    id: 'file_limits',
+    label: '📁 File size limits & supported types?',
+    query: 'file size limits supported formats',
   },
 ];
 
 export const KNOWLEDGE_RULES = [
-  // 1. Camera / QR Code Scanner Issues (Put specific devices first)
+  // 1. Camera / QR Code Scanner Issues
   {
     id: 'camera_qr',
-    primaryKeywords: ['camera', 'scan', 'scanner', 'qr', 'qrcode', 'permission', 'black screen'],
-    secondaryKeywords: ['open', 'kam', 'allow', 'chalu', 'photo', 'video', 'lens'],
+    primaryKeywords: ['camera', 'scan', 'scanner', 'qr', 'qrcode', 'permission', 'black screen', 'lens'],
+    secondaryKeywords: ['open', 'allow', 'video', 'photo', 'kam', 'chalu'],
     response: {
-      title: '📷 Camera & QR Code Troubleshooting',
-      text: `Agar QR code scanner me camera open nahi ho raha:
+      title: '📷 Camera & QR Scanner Troubleshooting',
+      text: `If the QR scanner or camera is not opening on your device, follow these steps:
 
-1. **Camera Permission Allow Karein**:
-   - Browser me URL ke paas Lock 🔒 icon par tap karein -> **Permissions** -> **Camera: Allow**.
-2. **Back / Front Camera Switch**:
-   - Scanner modal me upar right side par **Camera Switch 🔄** button hai, usse Back Camera par switch karein.
+1. **Allow Camera Permissions**:
+   - In your browser (Chrome/Safari), tap the **Lock icon 🔒** or settings icon beside the website address bar.
+   - Tap **Permissions** -> Toggle **Camera** to **Allow**.
+   - Refresh the page and tap the scanner again.
+2. **Switch to Rear/Front Camera**:
+   - On mobile phones, tap the **Switch Camera 🔄** button at the top-right of the scanner window to toggle to your back camera.
 3. **Alternative Option (No Camera Needed)**:
-   - Agar camera kaam nahi kar raha, toh simple **6-Digit Key** type karein ya **"Upload QR Image"** option use karein.`,
+   - You can enter the **6-digit key** manually into the box, or click **"Upload QR Image"** to scan from a photo or screenshot.`,
       action: { label: 'Open Receive & Scan', path: '/receive' },
-      tips: ['HTTPS connection me hi camera permission enable hoti hai (Vercel deployment par HTTPS automatic rehta hai).'],
+      tips: ['Tip: Browser camera access strictly requires a secure HTTPS connection.'],
     },
   },
 
@@ -61,108 +68,127 @@ export const KNOWLEDGE_RULES = [
   {
     id: 'key_issues',
     primaryKeywords: ['key', 'digit', 'expire', 'expired', 'invalid', 'wrong key', 'galat', 'code', 'pin'],
-    secondaryKeywords: ['not found', 'error', 'wrong', 'bata raha', 'khatam'],
+    secondaryKeywords: ['not found', 'error', 'wrong', 'bata raha', 'khatam', 'digits'],
     response: {
-      title: '🔑 6-Digit Key Invalid / Expired Solution',
-      text: `Agar "Invalid Key" ya "Transfer Expired" dikh raha hai:
+      title: '🔑 6-Digit Key Invalid or Expired',
+      text: `If you see an "Invalid Key" or "Transfer Expired" message:
 
-1. **10 Minute Expiry**: Security aur storage safety ke liye guest users ki 6-digit key **10 minutes** tak valid rehti hai. Agar 10 min ho gaye hain, toh sender ko dobara send karna padega.
-2. **Digit Re-check**: Key me sirf numbers (0-9) hote hain. Verify karein ki koi digit miss nahi hua hai.
-3. **Sender Upload Check**: Confirm karein ki sender ka upload 100% finish ho chuka tha aur usne browser tab close nahi kiya tha jab tak key generate nahi hui.`,
+1. **10-Minute Ephemeral Expiration**:
+   - For privacy and storage security, anonymous transfer keys expire after **10 minutes**.
+   - If the timer has lapsed, the staged files are automatically deleted and the sender must re-upload.
+2. **Double-Check Digits**:
+   - Make sure all 6 digits were entered correctly without spaces (e.g. 482910).
+3. **Sender Upload Status**:
+   - Confirm that the sender reached 100% upload completion and generated the key before you attempted to download.`,
       action: { label: 'Enter 6-Digit Key', path: '/receive' },
-      tips: ['Free account create karke login karein — logged-in users ko 24 hours tak ki validity milti hai!'],
+      tips: ['Tip: Sign up for a free account to unlock extended key validities up to 24 hours!'],
     },
   },
 
   // 3. Cross-Network Sharing (Pune to Sangamner)
   {
     id: 'cross_network',
-    primaryKeywords: ['pune', 'sangamner', 'different network', 'alag alag', 'dur', 'distance', 'city', 'location', 'shehar'],
-    secondaryKeywords: ['network', 'mobile data', '4g', '5g', 'wifi', 'hotspot', 'bheje'],
+    primaryKeywords: ['pune', 'sangamner', 'different network', 'alag alag', 'dur', 'distance', 'city', 'location', 'cross network'],
+    secondaryKeywords: ['network', 'mobile data', '4g', '5g', 'wifi', 'hotspot', 'cellular', 'cities'],
     response: {
       title: '🌍 Cross-Network & Long-Distance Transfer',
-      text: `**Haan bilkul! ShareDrop kisi bhi network aur kisi bhi city me kaam karta hai!**
+      text: `**Yes, absolutely! ShareDrop works across different networks, mobile carriers, and cities!**
 
-- **Kaise Kaam Karta Hai**: Sender chahe Pune me ho (Airtel/Jio) aur Receiver Sangamner me ho (Wi-Fi/Mobile Data), transfer 100% kaam karega!
-- **Steps**:
-  1. Sender **Send** page par file upload karega.
-  2. Upload complete hote hi ek **6-Digit Key** aur **QR Code** generate hoga.
-  3. Sender WhatsApp ya Call par receiver ko 6-digit key batayega (ya QR code share karega).
-  4. Receiver apne mobile me **Receive** page par 6 digits dalega -> **Automatic Download shuru ho jayega!**`,
+- **How It Works**:
+  - The sender can be in **Pune** using mobile cellular data (4G/5G Jio/Airtel).
+  - The recipient can be in **Sangamner** (or anywhere globally) using home Wi-Fi or mobile data.
+  - No shared local Wi-Fi or Bluetooth pairing is needed! Transfers flow seamlessly through our central cloud relay.
+- **Quick Steps**:
+  1. Sender selects files on the **Send** page and generates a **6-Digit Key** or **QR Code**.
+  2. Sender shares the key with the recipient over WhatsApp or Call.
+  3. Recipient enters the 6 digits on the **Receive** page -> **Automatic download begins immediately!**`,
       action: { label: 'Start Sending Files', path: '/send' },
-      tips: ['Dono users ko same Wi-Fi par hone ki bilkul zaroorat nahi hai. Ye Central Cloud Relay se chalta hai!'],
+      tips: ['Both devices do NOT need to be on the same Wi-Fi. Central cloud relay handles cross-network delivery.'],
     },
   },
 
   // 4. Download Not Working / Auto Download Issue
   {
     id: 'download_issue',
-    primaryKeywords: ['download', 'donaold', 'downlod', 'receive', 'automatic', 'auto download', 'install'],
-    secondaryKeywords: ['nahi ho raha', 'not downloading', 'fail', 'failed', 'stuck', 'ruka hai', 'error'],
+    primaryKeywords: ['download', 'donaold', 'downlod', 'receive', 'automatic', 'auto download', 'install', 'save'],
+    secondaryKeywords: ['not downloading', 'nahi ho raha', 'fail', 'failed', 'stuck', 'ruka hai', 'error', 'popup'],
     response: {
-      title: '📥 File Automatic Download Solution',
-      text: `Agar file download nahi ho rahi hai, toh ye 3 steps check karein:
+      title: '📥 Automatic Download Troubleshooting',
+      text: `If your files are not downloading automatically:
 
-1. **6 Digits Enter Karein**: 6-digit key daalte hi download **automatically start** ho jata hai.
-2. **Browser Popup / Permission Check**:
-   - Chrome/Safari me agar popup block hai, toh URL bar me lock 🔒 ya popup icon par click karke **"Always allow downloads"** karein.
-   - Agar automatic download start nahi hua, toh screen par aane wale **"Download Now"** button par click karein.
-3. **Key Check**: Sender ne transfer complete kiya hai ya nahi ye confirm karein. File upload 100% hone ke baad hi receiver download kar sakta hai.`,
+1. **Enter All 6 Digits**:
+   - The download initiates **automatically** as soon as the 6th digit is typed or the QR code is scanned.
+2. **Allow Browser Popups & Downloads**:
+   - If your mobile browser blocks automatic downloads, click the **Lock 🔒 icon** in your address bar and select **"Always allow downloads"**.
+3. **Manual Download Fallback**:
+   - If your browser blocked the automatic trigger, simply click the **"Download Now"** button displayed on your screen.
+4. **Sender Upload Verification**:
+   - Confirm with the sender that their file upload reached 100% and did not fail prematurely.`,
       action: { label: 'Go to Receive Page', path: '/receive' },
-      tips: ['Tip: Mobile browser me desktop mode off rakhein taaki file seedha Downloads folder me jaye.'],
+      tips: ['Tip: On mobile devices, files will be saved directly into your device Downloads folder.'],
     },
   },
 
-  // 5. Transfer History Issues
+  // 5. Transfer History Issues (Why is it empty / privacy)
   {
     id: 'history_issue',
-    primaryKeywords: ['history', 'purana', 'record', 'blank', 'khali', 'show nahi', 'dekh nahi', 'data leak', 'kisi ka bhi'],
-    secondaryKeywords: ['purani', 'pehle', 'kaha gaya', 'privacy'],
+    primaryKeywords: ['history', 'purana', 'record', 'blank', 'khali', 'empty', 'show nahi', 'dekh nahi', 'privacy', 'data leak'],
+    secondaryKeywords: ['purani', 'pehle', 'kaha gaya', 'where', 'lost', 'account'],
     response: {
       title: '🔒 Private Transfer History',
-      text: `**Privacy Update**: ShareDrop me transfer history sirf logged-in user ko dikhti hai aur 100% private rehti hai!
+      text: `**Transfer history is strictly isolated per registered user account:**
 
-- **Agar history blank dikh rahi hai**:
-  1. Pehle **Sign In / Log In** karein.
-  2. Login hone ke baad jo bhi files aap send ya receive karenge, wo aapke private account me save hongi.
-  3. Kisi doosre user ka data aapko nahi dikhega, aur aapka data kisi aur ko nahi dikhega.
-- **Anonymous Transfers**: Agar aap bina login kiye file send/receive karte hain, toh privacy ke liye browser me koi record save nahi hota.`,
-      action: { label: 'Sign In to Your Account', path: '/login' },
-      tips: ['Sign up bilkul free hai! Ek baar account bana lein taaki aapka transfer history save rahe.'],
+- **Why is history empty?**:
+  - To protect your personal privacy, transfer history is only saved when you are **logged in**.
+  - If you use ShareDrop as an anonymous guest, no transfer records are stored in the browser, preventing unauthorized users on this device from seeing your files.
+- **How to view and save history**:
+  1. Sign in to your ShareDrop account (or create a free account).
+  2. Any file you send or receive while logged in will be privately stored under your personal profile.
+  3. No other user can ever view your transfer history.`,
+      action: { label: 'Sign In to View History', path: '/login' },
+      tips: ['Creating an account is 100% free and takes less than 30 seconds.'],
     },
   },
 
   // 6. Server Connecting / Render Cold Start
   {
     id: 'server_health',
-    primaryKeywords: ['server', 'render', 'connecting', 'slow', 'offline', 'load', 'loading', 'chalu nahi', 'api'],
-    secondaryKeywords: ['speed', 'band', 'down', 'lag'],
+    primaryKeywords: ['server', 'render', 'connecting', 'slow', 'offline', 'load', 'loading', 'chalu nahi', 'api', 'server down'],
+    secondaryKeywords: ['speed', 'band', 'server down', 'lag', 'relay'],
     response: {
-      title: '⏳ Server Connection & Cold-Start Info',
-      text: `ShareDrop ka cloud backend **Render Cloud** par hosted hai:
+      title: '⏳ Central Relay Server Connection',
+      text: `ShareDrop's cloud backend is hosted on **Render Cloud**:
 
-- **Free Tier Wake-up**: Agar kisine 15 minutes tak server use nahi kiya ho, toh Render backend sleep mode me chala jata hai.
-- **Solution**: Pehli request par server ko wake up hone me lagbhag **30 se 45 seconds** lag sakte hain.
-- Ek baar green **"Connected"** ya **"Any Network"** status aa jaye, toh uske baad sabhi transfers high speed se honge!`,
-      action: { label: 'Check Server Status', path: '/' },
-      tips: ['Agar error aaye toh page refresh karein aur 20-30 seconds baad dobara try karein.'],
+- **Free-Tier Sleep Mode**:
+  - If the service has been idle for over 15 minutes, the cloud backend enters a sleep state to conserve resources.
+- **Wake-up Duration**:
+  - The first request can take approximately **30 to 45 seconds** to wake up.
+- Once the green **"Connected"** status displays, all subsequent transfers will run at full speed!`,
+      action: { label: 'Check Relay Status', path: '/' },
+      tips: ['Tip: If a transfer times out during server sleep, refresh the page and try again after 20 seconds.'],
     },
   },
 
   // 7. File Size Limits & File Types
   {
     id: 'file_limits',
-    primaryKeywords: ['size', 'limit', 'badi file', 'mb', 'gb', 'maximum', 'kitna bhej'],
-    secondaryKeywords: ['video', 'photo', 'pdf', 'zip', 'file', 'type'],
+    primaryKeywords: ['size', 'limit', 'badi file', 'mb', 'gb', 'maximum', 'large file', 'formats', 'types'],
+    secondaryKeywords: ['video', 'photo', 'pdf', 'zip', 'file', 'type', 'capacity'],
     response: {
       title: '📁 Supported Files & Size Limits',
-      text: `**Sabhi types ki files supported hain:**
-- **Formats**: Photos (JPG, PNG), Videos (MP4, MKV), Documents (PDF, Word, Excel), ZIP, APK, etc.
+      text: `**All file formats are fully supported without compression:**
+
+- **Supported Media**:
+  - High-resolution Videos (MP4, MKV, MOV, AVI)
+  - Original Photos (RAW, PNG, JPG, HEIC)
+  - Documents (PDF, Word, Excel, PPT)
+  - Compressed Archives (ZIP, RAR, 7Z, TAR)
+  - Applications (APK, DMG, EXE)
 - **Recommended Size**:
-  - Single transfer ke liye **up to 100MB - 500MB** fast aur reliable speed deta hai.
-  - Multiple files ek saath select karke send kar sakte hain.`,
+  - Up to **100MB – 500MB** per batch provides maximum web browser stability and instant download speeds.
+  - Multi-file batch selection is fully supported.`,
       action: { label: 'Select Files to Send', path: '/send' },
-      tips: ['Badi files ke liye fast Wi-Fi ya 5G connection use karein taaki upload jaldi complete ho.'],
+      tips: ['Unlike messaging apps, ShareDrop does not compress or downscale your 4K videos or RAW photos.'],
     },
   },
 
@@ -170,67 +196,70 @@ export const KNOWLEDGE_RULES = [
   {
     id: 'account_login',
     primaryKeywords: ['login', 'signin', 'sign in', 'signup', 'register', 'account', 'password', 'forgot', 'reset'],
-    secondaryKeywords: ['email', 'auth', 'pass', 'logout'],
+    secondaryKeywords: ['email', 'auth', 'pass', 'logout', 'profile'],
     response: {
-      title: '👤 Account & Password Help',
-      text: `Account related help:
+      title: '👤 Account & Authentication',
+      text: `Account details and benefits:
 
-- **Kya Login karna compulsory hai?**: Nahi! File send aur receive bina kisi login ke bilkul FREE aur instant kaam karta hai.
-- **Account ke Fayde**:
+- **Is an account required?**:
+  - **No!** Sending and receiving files is completely free, anonymous, and requires no account.
+- **Benefits of Creating an Account**:
   - Private Transfer History
-  - 24 Hours tak ki extended key validity
+  - Extended Key Validity (up to 24 hours)
   - Multi-device sync
-- **Password Reset**: Agar password bhool gaye hain, toh **Forgot Password** page par jaakar apna email daalein aur password reset karein.`,
-      action: { label: 'Go to Sign In', path: '/login' },
-      tips: ['Neon PostgreSQL secure database me aapka account encrypted format me safe rehta hai.'],
+- **Forgot Password?**:
+  - Head to the **Forgot Password** page, enter your registered email address, and reset your password securely.`,
+      action: { label: 'Sign In / Register', path: '/login' },
+      tips: ['All user passwords are encrypted using PBKDF2 cryptography with Neon PostgreSQL.'],
     },
   },
 
-  // 9. Who developed / credits
+  // 9. Developer & Project Details
   {
     id: 'creator_info',
-    primaryKeywords: ['vaibhav', 'sonawane', 'who made', 'developer', 'creator', 'kisne banaya', 'owner'],
-    secondaryKeywords: ['about', 'team'],
+    primaryKeywords: ['vaibhav', 'sonawane', 'who made', 'developer', 'creator', 'kisne banaya', 'owner', 'author'],
+    secondaryKeywords: ['about', 'team', 'contact'],
     response: {
       title: '⚡ About ShareDrop & Developer',
       text: `ShareDrop is developed by **Vaibhav Sonawane**.
 
-Designed as a modern, high-speed, cross-network file sharing alternative inspired by Send Anywhere. It allows direct cloud relay transfers across different networks and locations (like Pune to Sangamner) with automatic downloads and 6-digit keys.`,
-      action: { label: 'Explore Home', path: '/' },
-      tips: ['Developed with React 19, Tailwind CSS, Express, and Neon PostgreSQL.'],
+Engineered as a clean, high-speed, cross-network file sharing platform inspired by Send Anywhere. It enables instant cloud relay transfers across different networks and geographic locations (such as Pune to Sangamner) with 6-digit keys, QR codes, and automatic downloads.`,
+      action: { label: 'Explore ShareDrop Home', path: '/' },
+      tips: ['Built with modern React 19, Tailwind CSS, Express, and Neon PostgreSQL.'],
     },
   },
 ];
 
 /**
  * Intelligent matcher that scores user query against knowledge rules.
+ * Always replies with structured, professional English answers.
  */
 export function getAssistantResponse(userQuery, context = {}) {
   const cleanQuery = (userQuery || '').toLowerCase().trim();
 
   if (!cleanQuery) {
     return {
-      title: '👋 Namaste! Main ShareDrop AI Assistant hoon.',
-      text: 'Aapko file transfer, download, 6-digit key, ya scanner me koi bhi dikkat aa rahi ho toh mujhe batayein. Main aapki poori help karunga!\n\nAap neeche diye gaye quick topics me se bhi select kar sakte hain.',
+      title: '👋 Welcome to ShareDrop AI Support',
+      text: 'How can I assist you with your file transfer today? Ask any question regarding file downloads, 6-digit keys, QR scanning, or cross-network transfers.',
       action: null,
-      tips: ['Tip: Aap Hindi, Hinglish, ya English me koi bhi sawaal pooch sakte hain.'],
+      tips: ['Tip: You can select any quick topic below or type your problem directly.'],
     };
   }
 
   // Greetings check
-  const greetings = ['hi', 'hello', 'hey', 'namaste', 'salam', 'kasa ahes', 'kaise ho', 'help', 'madad'];
+  const greetings = ['hi', 'hello', 'hey', 'namaste', 'salam', 'kasa ahes', 'kaise ho', 'help', 'good morning', 'good evening'];
   if (greetings.includes(cleanQuery) || cleanQuery.length < 3) {
     return {
-      title: '👋 Hello! Kaise help kar sakta hoon aapki?',
-      text: `ShareDrop assistant me aapka swagat hai! 
+      title: '👋 Hello! How can I assist you today?',
+      text: `Welcome to ShareDrop Support!
 
-Aapko file bhejne me, receive karne me, ya 6-digit code me koi issue aa raha hai? Mujhe batayein, ya neeche quick options par tap karein:
-- 📥 File download nahi ho rahi
-- 🔑 Key expire ya invalid bata raha hai
-- 🌍 Pune se Sangamner kaise bhejein
-- 📷 QR camera permission issue`,
+Are you having an issue sending or receiving files? Tell me what happened, or tap any common topic below:
+- 📥 File is not downloading automatically
+- 🔑 6-Digit key is invalid or expired
+- 🌍 Transferring between different cities or networks
+- 📷 QR code camera permission issue`,
       action: { label: 'Send Files Now', path: '/send' },
-      tips: ['Type your problem or tap any quick button below.'],
+      tips: ['Tap any prompt below or type your issue in the message box.'],
     };
   }
 
@@ -238,18 +267,33 @@ Aapko file bhejne me, receive karne me, ya 6-digit code me koi issue aa raha hai
   let bestMatch = null;
   let highestScore = 0;
 
+  const queryWords = cleanQuery.split(/[\s,?.!]+/);
+
+  const checkMatch = (kw) => {
+    if (kw.includes(' ')) {
+      return cleanQuery.includes(kw);
+    }
+    if (queryWords.includes(kw)) {
+      return true;
+    }
+    if (kw.length >= 5 && cleanQuery.includes(kw)) {
+      return true;
+    }
+    return false;
+  };
+
   for (const rule of KNOWLEDGE_RULES) {
     let score = 0;
     if (rule.primaryKeywords) {
       for (const kw of rule.primaryKeywords) {
-        if (cleanQuery.includes(kw)) {
+        if (checkMatch(kw)) {
           score += 5;
         }
       }
     }
     if (rule.secondaryKeywords) {
       for (const kw of rule.secondaryKeywords) {
-        if (cleanQuery.includes(kw)) {
+        if (checkMatch(kw)) {
           score += 2;
         }
       }
@@ -265,21 +309,21 @@ Aapko file bhejne me, receive karne me, ya 6-digit code me koi issue aa raha hai
     return bestMatch.response;
   }
 
-  // Fallback intelligent response
+  // Fallback intelligent response in English
   return {
-    title: '🤔 Main aapka issue samajhne ki koshish kar raha hoon',
-    text: `Aapne poocha: "${userQuery}"
+    title: '🤔 How can I best help you?',
+    text: `You asked: "${userQuery}"
 
-Agar aapko transfer me problem aa rahi hai, toh kripya batayein:
-1. **Kya aap File Bhej rahe hain (Send)?**
-   - File select karein -> Upload complete hone par 6-digit key banegi.
-2. **Kya aap File Receive kar rahe hain?**
-   - 6-digit key daalein -> File **automatically download** ho jayegi.
-3. **Kya Sender & Receiver alag network / city me hain?**
-   - ShareDrop Pune se Sangamner ya kisi bhi doosre shehar me perfectly kaam karta hai.
+To help resolve your issue, please select what you are trying to do:
+1. **Sending Files**:
+   - Go to the **Send** page -> Select files -> Wait for 100% upload -> Share the 6-digit key.
+2. **Receiving Files**:
+   - Go to the **Receive** page -> Enter the 6-digit key -> **Automatic download will start**.
+3. **Cross-Network Sharing**:
+   - ShareDrop connects devices anywhere (e.g. Pune to Sangamner) across 4G, 5G, and Wi-Fi.
 
-Aap neeche quick button se apna issue choose kar sakte hain:`,
-    action: { label: 'Go to Receive', path: '/receive' },
-    tips: ['Agar koi specific error code ya message aa raha hai, toh wahi exact message type karein.'],
+Choose one of the common topics below for instant step-by-step guidance:`,
+    action: { label: 'Go to Receive Page', path: '/receive' },
+    tips: ['Tip: If you saw an error message, typing the exact error words helps me give a precise solution.'],
   };
 }
