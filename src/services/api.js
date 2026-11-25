@@ -1,6 +1,6 @@
 // API service for uploading, receiving files, and user authentication
-
-const API_BASE = (import.meta.env.VITE_API_URL || '/api').replace(/\/+$/, '');
+// Connected directly to live Render backend API
+const API_BASE = (import.meta.env.VITE_API_URL || 'https://sharedropapi.onrender.com/api').replace(/\/+$/, '');
 
 // Helper to get auth token
 function getAuthHeader() {
