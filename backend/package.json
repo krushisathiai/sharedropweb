@@ -1,7 +1,7 @@
 {
-  "name": "sendanywhere-backend",
+  "name": "sharedropapi",
   "version": "1.0.0",
-  "description": "Send Anywhere backend server for cross-network file transfer",
+  "description": "ShareDrop Backend REST API & Cloud Relay Service",
   "main": "index.js",
   "type": "module",
   "scripts": {
