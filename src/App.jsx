@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Toast from './components/Toast';
+import ChatBot from './components/ChatBot';
 import KeyDisplayModal from './components/KeyDisplayModal';
 import FileReceiveModal from './components/FileReceiveModal';
 import Home from './pages/Home';
@@ -54,6 +55,9 @@ function MainApp() {
 
       {/* Floating Toast Notifications */}
       <Toast />
+
+      {/* Intelligent AI Support ChatBot */}
+      <ChatBot />
 
       {/* Bottom Footer */}
       <Footer />

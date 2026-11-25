@@ -46,7 +46,7 @@ export default function Navbar() {
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
                 <span className="font-extrabold text-xl tracking-tight text-slate-900">
-                  Share<span className="text-rose-500">Drop</span>
+                  Share<span className="text-rose-500"> Drop</span>
                 </span>
                 <span className="text-[10px] font-semibold bg-rose-50 text-rose-600 border border-rose-200/60 rounded px-1.5 py-0.2">
                   Cloud Relay
