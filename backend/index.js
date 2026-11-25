@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { authRouter, optionalAuthMiddleware } from './auth.js';
+import { initDb } from './db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,6 +13,9 @@ const __dirname = path.dirname(__filename);
 const app = express();
 // Dynamic PORT for cloud hosting (Render, Railway, Heroku, VPS, etc.)
 const PORT = process.env.PORT || 5000;
+
+// Initialize Neon PostgreSQL database schema on startup
+initDb().catch((err) => console.error('[Neon DB Init Failed]:', err.message));
 
 // Enable CORS for all origins so any mobile device on ANY network (4G/5G/WiFi) can access
 app.use(cors({

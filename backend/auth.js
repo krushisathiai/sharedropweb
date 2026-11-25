@@ -1,65 +1,33 @@
-import fs from 'fs';
-import path from 'path';
 import crypto from 'crypto';
 import express from 'express';
-import { fileURLToPath } from 'url';
+import { pool } from './db.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Data directory to store users permanently
-const DATA_DIR = path.join(__dirname, 'data');
-const USERS_FILE = path.join(DATA_DIR, 'users.json');
-
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-
-// In-memory sessions & password reset codes
-// tokens: Map<token, { userId, email, expiresAt }>
-const sessions = new Map();
-// resetCodes: Map<email, { code, expiresAt }>
-const resetCodes = new Map();
-
-// Helper to read users
-function readUsers() {
-  try {
-    if (fs.existsSync(USERS_FILE)) {
-      const data = fs.readFileSync(USERS_FILE, 'utf-8');
-      return JSON.parse(data);
-    }
-  } catch (err) {
-    console.error('Error reading users file:', err);
-  }
-  return [];
-}
-
-// Helper to write users
-function writeUsers(users) {
-  try {
-    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf-8');
-  } catch (err) {
-    console.error('Error writing users file:', err);
-  }
-}
-
-// Password hashing helper
+// Password hashing helper with unique salt
 function hashPassword(password, salt) {
   return crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
 }
 
-// Optional Auth Middleware: If token provided, populates req.user. If not, proceeds smoothly!
-export function optionalAuthMiddleware(req, res, next) {
+// Optional Auth Middleware: If token provided, populates req.user from Neon DB. If not, proceeds smoothly!
+export async function optionalAuthMiddleware(req, res, next) {
   const authHeader = req.headers['authorization'];
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.split(' ')[1];
-    const session = sessions.get(token);
-    if (session && session.expiresAt > Date.now()) {
-      const users = readUsers();
-      const user = users.find((u) => u.id === session.userId);
-      if (user) {
-        req.user = { id: user.id, name: user.name, email: user.email };
+    try {
+      const now = Date.now();
+      const result = await pool.query(
+        `SELECT u.id, u.name, u.email 
+         FROM sessions s 
+         JOIN users u ON s.user_id = u.id 
+         WHERE s.token = $1 AND s.expires_at > $2 
+         LIMIT 1`,
+        [token, now]
+      );
+
+      if (result.rows.length > 0) {
+        req.user = result.rows[0];
       }
+    } catch (err) {
+      console.error('[Auth Middleware Error]:', err.message);
     }
   }
   next();
@@ -67,8 +35,8 @@ export function optionalAuthMiddleware(req, res, next) {
 
 export const authRouter = express.Router();
 
-// 1. Signup (Registration)
-authRouter.post('/signup', (req, res) => {
+// 1. Signup (Registration in Neon PostgreSQL)
+authRouter.post('/signup', async (req, res) => {
   const { name, email, password } = req.body;
 
   if (!name || !email || !password) {
@@ -83,47 +51,50 @@ authRouter.post('/signup', (req, res) => {
     });
   }
 
-  const users = readUsers();
-  if (users.some((u) => u.email === cleanEmail)) {
-    return res.status(400).json({ success: false, message: 'An account with this email already exists.' });
+  try {
+    // Check if user already exists
+    const existing = await pool.query('SELECT id FROM users WHERE email = $1 LIMIT 1', [cleanEmail]);
+    if (existing.rows.length > 0) {
+      return res.status(400).json({ success: false, message: 'An account with this email already exists.' });
+    }
+
+    const salt = crypto.randomBytes(16).toString('hex');
+    const hashedPassword = hashPassword(password, salt);
+    const userId = 'user_' + Date.now() + '_' + Math.round(Math.random() * 1e4);
+
+    // Insert user into Neon PostgreSQL
+    await pool.query(
+      `INSERT INTO users (id, name, email, salt, password) 
+       VALUES ($1, $2, $3, $4, $5)`,
+      [userId, name.trim(), cleanEmail, salt, hashedPassword]
+    );
+
+    // Generate session token (valid for 30 days)
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000;
+
+    await pool.query(
+      `INSERT INTO sessions (token, user_id, email, expires_at) 
+       VALUES ($1, $2, $3, $4)`,
+      [token, userId, cleanEmail, expiresAt]
+    );
+
+    console.log(`[Neon DB] New user registered: ${name} (${cleanEmail})`);
+
+    res.status(201).json({
+      success: true,
+      message: 'Account created successfully in Neon Database!',
+      token,
+      user: { id: userId, name: name.trim(), email: cleanEmail }
+    });
+  } catch (err) {
+    console.error('[Signup Error]:', err);
+    res.status(500).json({ success: false, message: 'Database error creating account: ' + err.message });
   }
-
-  const salt = crypto.randomBytes(16).toString('hex');
-  const hashedPassword = hashPassword(password, salt);
-  const userId = 'user_' + Date.now() + '_' + Math.round(Math.random() * 1e4);
-
-  const newUser = {
-    id: userId,
-    name: name.trim(),
-    email: cleanEmail,
-    salt,
-    password: hashedPassword,
-    createdAt: new Date().toISOString()
-  };
-
-  users.push(newUser);
-  writeUsers(users);
-
-  // Generate session token (valid for 30 days)
-  const token = crypto.randomBytes(32).toString('hex');
-  sessions.set(token, {
-    userId: newUser.id,
-    email: newUser.email,
-    expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000
-  });
-
-  console.log(`[Auth] New user registered: ${newUser.name} (${newUser.email})`);
-
-  res.status(201).json({
-    success: true,
-    message: 'Account created successfully!',
-    token,
-    user: { id: newUser.id, name: newUser.name, email: newUser.email }
-  });
 });
 
-// 2. Login
-authRouter.post('/login', (req, res) => {
+// 2. Login (Verified against Neon PostgreSQL)
+authRouter.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -131,38 +102,46 @@ authRouter.post('/login', (req, res) => {
   }
 
   const cleanEmail = email.toLowerCase().trim();
-  const users = readUsers();
-  const user = users.find((u) => u.email === cleanEmail);
 
-  if (!user) {
-    return res.status(401).json({ success: false, message: 'Invalid email or password.' });
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE email = $1 LIMIT 1', [cleanEmail]);
+    if (result.rows.length === 0) {
+      return res.status(401).json({ success: false, message: 'Invalid email or password.' });
+    }
+
+    const user = result.rows[0];
+    const hashedPassword = hashPassword(password, user.salt);
+
+    if (hashedPassword !== user.password) {
+      return res.status(401).json({ success: false, message: 'Invalid email or password.' });
+    }
+
+    // Generate session token (valid for 30 days)
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000;
+
+    await pool.query(
+      `INSERT INTO sessions (token, user_id, email, expires_at) 
+       VALUES ($1, $2, $3, $4)`,
+      [token, user.id, user.email, expiresAt]
+    );
+
+    console.log(`[Neon DB] User authenticated: ${user.name} (${user.email})`);
+
+    res.json({
+      success: true,
+      message: 'Logged in successfully!',
+      token,
+      user: { id: user.id, name: user.name, email: user.email }
+    });
+  } catch (err) {
+    console.error('[Login Error]:', err);
+    res.status(500).json({ success: false, message: 'Database error: ' + err.message });
   }
-
-  const hashedPassword = hashPassword(password, user.salt);
-  if (hashedPassword !== user.password) {
-    return res.status(401).json({ success: false, message: 'Invalid email or password.' });
-  }
-
-  // Generate session token (valid for 30 days)
-  const token = crypto.randomBytes(32).toString('hex');
-  sessions.set(token, {
-    userId: user.id,
-    email: user.email,
-    expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000
-  });
-
-  console.log(`[Auth] User logged in: ${user.name} (${user.email})`);
-
-  res.json({
-    success: true,
-    message: 'Logged in successfully!',
-    token,
-    user: { id: user.id, name: user.name, email: user.email }
-  });
 });
 
-// 3. Forgot Password - Request Reset Code
-authRouter.post('/forgot-password', (req, res) => {
+// 3. Forgot Password - Request 6-digit Code (Saved in Neon DB)
+authRouter.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
 
   if (!email) {
@@ -170,37 +149,45 @@ authRouter.post('/forgot-password', (req, res) => {
   }
 
   const cleanEmail = email.toLowerCase().trim();
-  const users = readUsers();
-  const user = users.find((u) => u.email === cleanEmail);
 
-  if (!user) {
-    // For security, don't leak whether user exists, but give friendly message
-    return res.json({
+  try {
+    const userRes = await pool.query('SELECT id FROM users WHERE email = $1 LIMIT 1', [cleanEmail]);
+    if (userRes.rows.length === 0) {
+      return res.json({
+        success: true,
+        message: 'If an account exists with this email, a 6-digit reset code has been sent.',
+        resetCode: '729104'
+      });
+    }
+
+    // Generate 6-digit verification code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 15 * 60 * 1000; // 15 mins
+
+    // Upsert into password_resets table in Neon DB
+    await pool.query(
+      `INSERT INTO password_resets (email, code, expires_at)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (email) 
+       DO UPDATE SET code = $2, expires_at = $3, created_at = CURRENT_TIMESTAMP`,
+      [cleanEmail, code, expiresAt]
+    );
+
+    console.log(`[Neon DB] Password reset code generated for ${cleanEmail}: ${code}`);
+
+    res.json({
       success: true,
-      message: 'If an account exists with this email, a 6-digit reset code has been sent.',
-      code: '849201' // Demo simulation code
+      message: 'A 6-digit verification code has been generated.',
+      resetCode: code
     });
+  } catch (err) {
+    console.error('[Forgot Password Error]:', err);
+    res.status(500).json({ success: false, message: 'Database error: ' + err.message });
   }
-
-  // Generate 6-digit verification code
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
-  resetCodes.set(cleanEmail, {
-    code,
-    expiresAt: Date.now() + 15 * 60 * 1000 // 15 mins validity
-  });
-
-  console.log(`[Auth] Password reset requested for ${cleanEmail}. Verification Code: ${code}`);
-
-  res.json({
-    success: true,
-    message: 'A 6-digit verification code has been sent to your email.',
-    // Returning code for instant seamless testing without requiring SMTP credentials
-    resetCode: code
-  });
 });
 
-// 4. Reset Password with Code
-authRouter.post('/reset-password', (req, res) => {
+// 4. Reset Password with Code in Neon DB
+authRouter.post('/reset-password', async (req, res) => {
   const { email, code, newPassword } = req.body;
 
   if (!email || !code || !newPassword) {
@@ -220,46 +207,52 @@ authRouter.post('/reset-password', (req, res) => {
     });
   }
 
-  const savedReset = resetCodes.get(cleanEmail);
-  if (!savedReset || savedReset.code !== cleanCode) {
-    return res.status(400).json({
-      success: false,
-      message: 'Invalid or expired verification code. Please request a new one.'
+  try {
+    const resetRes = await pool.query(
+      'SELECT * FROM password_resets WHERE email = $1 LIMIT 1',
+      [cleanEmail]
+    );
+
+    if (resetRes.rows.length === 0 || resetRes.rows[0].code !== cleanCode) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired verification code. Please request a new one.'
+      });
+    }
+
+    const resetData = resetRes.rows[0];
+    if (Date.now() > Number(resetData.expires_at)) {
+      await pool.query('DELETE FROM password_resets WHERE email = $1', [cleanEmail]);
+      return res.status(400).json({
+        success: false,
+        message: 'Verification code has expired. Please request a new one.'
+      });
+    }
+
+    // Update user password and salt in Neon PostgreSQL
+    const salt = crypto.randomBytes(16).toString('hex');
+    const hashedPassword = hashPassword(newPassword, salt);
+
+    await pool.query(
+      `UPDATE users 
+       SET salt = $1, password = $2, updated_at = CURRENT_TIMESTAMP 
+       WHERE email = $3`,
+      [salt, hashedPassword, cleanEmail]
+    );
+
+    // Delete used reset code
+    await pool.query('DELETE FROM password_resets WHERE email = $1', [cleanEmail]);
+
+    console.log(`[Neon DB] Password successfully reset for ${cleanEmail}`);
+
+    res.json({
+      success: true,
+      message: 'Your password has been reset successfully! You can now log in.'
     });
+  } catch (err) {
+    console.error('[Reset Password Error]:', err);
+    res.status(500).json({ success: false, message: 'Database error: ' + err.message });
   }
-
-  if (Date.now() > savedReset.expiresAt) {
-    resetCodes.delete(cleanEmail);
-    return res.status(400).json({
-      success: false,
-      message: 'Verification code has expired. Please request a new one.'
-    });
-  }
-
-  const users = readUsers();
-  const userIndex = users.findIndex((u) => u.email === cleanEmail);
-
-  if (userIndex === -1) {
-    return res.status(404).json({ success: false, message: 'User not found.' });
-  }
-
-  // Update password with fresh salt
-  const salt = crypto.randomBytes(16).toString('hex');
-  const hashedPassword = hashPassword(newPassword, salt);
-
-  users[userIndex].salt = salt;
-  users[userIndex].password = hashedPassword;
-  users[userIndex].updatedAt = new Date().toISOString();
-
-  writeUsers(users);
-  resetCodes.delete(cleanEmail);
-
-  console.log(`[Auth] Password reset successful for ${cleanEmail}`);
-
-  res.json({
-    success: true,
-    message: 'Your password has been reset successfully! You can now log in.'
-  });
 });
 
 // 5. Get current profile
@@ -271,11 +264,15 @@ authRouter.get('/me', optionalAuthMiddleware, (req, res) => {
 });
 
 // 6. Logout
-authRouter.post('/logout', (req, res) => {
+authRouter.post('/logout', async (req, res) => {
   const authHeader = req.headers['authorization'];
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.split(' ')[1];
-    sessions.delete(token);
+    try {
+      await pool.query('DELETE FROM sessions WHERE token = $1', [token]);
+    } catch (err) {
+      console.error('[Logout Error]:', err.message);
+    }
   }
   res.json({ success: true, message: 'Logged out successfully.' });
 });
