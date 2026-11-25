@@ -1,18 +1,14 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { getServerHealth } from '../services/api';
+import { useAuth } from './AuthContext';
 
 const TransferContext = createContext(null);
 
 export function TransferProvider({ children }) {
-  // Recent transfers history (saved in localStorage)
-  const [history, setHistory] = useState(() => {
-    try {
-      const saved = localStorage.getItem('sharedrop_history');
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      return [];
-    }
-  });
+  const { user } = useAuth();
+
+  // History state: Strictly scoped to the currently authenticated user!
+  const [history, setHistory] = useState([]);
 
   // Active modal state
   const [activeModal, setActiveModal] = useState(null);
@@ -28,13 +24,33 @@ export function TransferProvider({ children }) {
   const [toasts, setToasts] = useState([]);
   const lastToastRef = useRef({ message: '', time: 0 });
 
+  // Load history ONLY when user is logged in
   useEffect(() => {
-    try {
-      localStorage.setItem('sharedrop_history', JSON.stringify(history));
-    } catch (e) {
-      console.error(e);
+    if (user && user.id) {
+      try {
+        const userStorageKey = `sharedrop_history_${user.id}`;
+        const saved = localStorage.getItem(userStorageKey);
+        setHistory(saved ? JSON.parse(saved) : []);
+      } catch (e) {
+        setHistory([]);
+      }
+    } else {
+      // Guest or logged out: completely hide and clear history!
+      setHistory([]);
     }
-  }, [history]);
+  }, [user]);
+
+  // Persist history ONLY for the logged-in user
+  useEffect(() => {
+    if (user && user.id && history.length >= 0) {
+      try {
+        const userStorageKey = `sharedrop_history_${user.id}`;
+        localStorage.setItem(userStorageKey, JSON.stringify(history));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, [history, user]);
 
   // Check server health on load
   useEffect(() => {
@@ -65,7 +81,6 @@ export function TransferProvider({ children }) {
     lastToastRef.current = { message, time: now };
 
     const id = now.toString();
-    // Only 1 toast visible at a time
     setToasts([{ id, message, type }]);
 
     setTimeout(() => {
@@ -78,9 +93,13 @@ export function TransferProvider({ children }) {
   };
 
   const addToHistory = (transferItem) => {
+    // History is ONLY saved for logged-in users
+    if (!user || !user.id) return;
+
     setHistory((prev) => [
       {
         id: Date.now().toString(),
+        userId: user.id,
         timestamp: Date.now(),
         ...transferItem,
       },
@@ -89,8 +108,11 @@ export function TransferProvider({ children }) {
   };
 
   const clearHistory = () => {
-    setHistory([]);
-    localStorage.removeItem('sharedrop_history');
+    if (user && user.id) {
+      setHistory([]);
+      const userStorageKey = `sharedrop_history_${user.id}`;
+      localStorage.removeItem(userStorageKey);
+    }
   };
 
   return (

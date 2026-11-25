@@ -16,7 +16,7 @@ export default function Navbar() {
     { name: 'Transfer', path: '/' },
     { name: 'Send', path: '/send' },
     { name: 'Receive', path: '/receive' },
-    { name: 'History', path: '/history', badge: history.length > 0 ? history.length : null },
+    { name: 'History', path: '/history', badge: isAuthenticated && history.length > 0 ? history.length : null },
   ];
 
   const isActive = (path) => {

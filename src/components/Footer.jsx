@@ -134,8 +134,11 @@ export default function Footer() {
         {/* Bottom copyright */}
         <div className="border-t border-slate-100 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-3">
           <p>© {new Date().getFullYear()} ShareDrop. All rights reserved.</p>
-          <div className="flex items-center gap-1 text-slate-500">
-            <span>Built with clean white design & Tailwind CSS</span>
+          <div className="flex items-center gap-1.5 text-slate-700 font-medium">
+            <span>Developed by</span>
+            <span className="text-rose-600 font-bold bg-rose-50 border border-rose-200/80 px-2.5 py-0.5 rounded-full shadow-2xs">
+              Vaibhav Sonawane
+            </span>
           </div>
         </div>
       </div>
