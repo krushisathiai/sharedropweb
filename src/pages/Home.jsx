@@ -86,8 +86,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           
           {/* Hero Headings */}
-          <div className="text-center max-w-3xl mx-auto space-y-3 sm:space-y-4">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-[11px] sm:text-xs font-bold tracking-wide shadow-2xs">
+          <div className="text-center max-w-3xl mx-auto space-y-3 sm:space-y-4 animate-fade-in">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-[11px] sm:text-xs font-bold tracking-wide shadow-2xs animate-float">
               <Globe className="w-3.5 h-3.5" />
               <span>Global Cloud Relay • Works Across 4G / 5G / Wi-Fi Networks</span>
             </div>
@@ -102,7 +102,7 @@ export default function Home() {
           </div>
 
           {/* Dual Card Section (Send & Receive) */}
-          <div className="mt-8 sm:mt-12 max-w-5xl mx-auto">
+          <div className="mt-8 sm:mt-12 max-w-5xl mx-auto animate-fade-in-delayed">
             {/* Mobile Tab Switcher */}
             <div className="flex sm:hidden p-1 bg-slate-200/80 rounded-xl mb-3 shadow-inner">
               <button
@@ -161,7 +161,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
             
             {/* Step 1 */}
-            <div className="bg-slate-50/70 border border-slate-200/70 rounded-2xl p-6 relative flex flex-col items-center text-center group hover:bg-white hover:shadow-md transition-all">
+            <div className="bg-slate-50/70 border border-slate-200/70 rounded-2xl p-6 relative flex flex-col items-center text-center group hover:bg-white card-hover-effect">
               <div className="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 font-black text-xl mb-4 group-hover:scale-110 transition-transform">
                 <Film className="w-7 h-7 text-rose-500" />
               </div>
@@ -177,7 +177,7 @@ export default function Home() {
             </div>
 
             {/* Step 2 */}
-            <div className="bg-slate-50/70 border border-slate-200/70 rounded-2xl p-6 relative flex flex-col items-center text-center group hover:bg-white hover:shadow-md transition-all">
+            <div className="bg-slate-50/70 border border-slate-200/70 rounded-2xl p-6 relative flex flex-col items-center text-center group hover:bg-white card-hover-effect">
               <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-500 font-black text-xl mb-4 group-hover:scale-110 transition-transform">
                 <QrCode className="w-7 h-7 text-amber-500" />
               </div>
@@ -193,7 +193,7 @@ export default function Home() {
             </div>
 
             {/* Step 3 */}
-            <div className="bg-slate-50/70 border border-slate-200/70 rounded-2xl p-6 relative flex flex-col items-center text-center group hover:bg-white hover:shadow-md transition-all">
+            <div className="bg-slate-50/70 border border-slate-200/70 rounded-2xl p-6 relative flex flex-col items-center text-center group hover:bg-white card-hover-effect">
               <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500 font-black text-xl mb-4 group-hover:scale-110 transition-transform">
                 <FileCheck2 className="w-7 h-7 text-emerald-500" />
               </div>
@@ -230,8 +230,8 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
             
             {/* Sender on Mobile 4G/5G */}
-            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-6 text-center space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-6 text-center space-y-3 card-hover-effect">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center mx-auto transition-transform hover:scale-110">
                 <Smartphone className="w-6 h-6" />
               </div>
               <div>
@@ -246,8 +246,8 @@ export default function Home() {
             </div>
 
             {/* Central Cloud Server */}
-            <div className="bg-gradient-to-b from-slate-900 to-slate-800 text-white rounded-2xl p-6 text-center space-y-3 shadow-lg">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 text-rose-400 flex items-center justify-center mx-auto">
+            <div className="bg-gradient-to-b from-slate-900 to-slate-800 text-white rounded-2xl p-6 text-center space-y-3 shadow-xl card-hover-effect relative border border-slate-700/60">
+              <div className="w-12 h-12 rounded-2xl bg-white/10 text-rose-400 flex items-center justify-center mx-auto animate-pulse-glow">
                 <Globe className="w-6 h-6" />
               </div>
               <div>
@@ -262,8 +262,8 @@ export default function Home() {
             </div>
 
             {/* Receiver on Different WiFi / City */}
-            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-6 text-center space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-6 text-center space-y-3 card-hover-effect">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center mx-auto transition-transform hover:scale-110">
                 <Laptop className="w-6 h-6" />
               </div>
               <div>
@@ -299,7 +299,7 @@ export default function Home() {
           {features.map((item, idx) => (
             <div
               key={idx}
-              className="bg-white p-6 rounded-2xl border border-slate-200/80 hover:shadow-lg hover:border-slate-300 transition-all group"
+              className="bg-white p-6 rounded-2xl border border-slate-200/80 hover:border-slate-300 group card-hover-effect"
             >
               <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 {item.icon}

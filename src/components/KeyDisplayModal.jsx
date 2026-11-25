@@ -84,7 +84,7 @@ export default function KeyDisplayModal({ data, onClose }) {
 
             <div
               onClick={copyKeyToClipboard}
-              className="group cursor-pointer inline-flex items-center justify-center gap-2.5 sm:gap-4 bg-rose-50/70 hover:bg-rose-100/70 border-2 border-rose-300/80 rounded-2xl px-4 py-3 sm:px-6 sm:py-4 shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="group cursor-pointer inline-flex items-center justify-center gap-2.5 sm:gap-4 bg-rose-50/70 hover:bg-rose-100/70 border-2 border-rose-300/80 rounded-2xl px-4 py-3 sm:px-6 sm:py-4 shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] animate-pulse-border"
             >
               <span className="font-mono text-3xl sm:text-5xl font-black text-rose-600 tracking-wider">
                 {formatKey(data.key)}

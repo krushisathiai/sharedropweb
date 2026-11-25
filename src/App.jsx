@@ -24,8 +24,8 @@ function MainApp() {
       {/* Top Navbar */}
       <Navbar />
 
-      {/* Main Content Area */}
-      <main className="flex-1">
+      {/* Main Content Area (Offset for Top Fixed Navbar) */}
+      <main className="flex-1 pt-16 sm:pt-20">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/send" element={<SendPage />} />

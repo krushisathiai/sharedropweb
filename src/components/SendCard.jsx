@@ -119,7 +119,7 @@ export default function SendCard({ className = '', onTransferComplete = null }) 
 
   return (
     <div
-      className={`bg-white rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-200/40 p-4 sm:p-7 flex flex-col justify-between transition-all duration-300 ${className}`}
+      className={`bg-white rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-200/40 p-4 sm:p-7 flex flex-col justify-between card-hover-effect ${className}`}
     >
       <div>
         {/* Card Header */}
