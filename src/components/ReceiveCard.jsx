@@ -3,10 +3,12 @@ import { Download, QrCode, Clipboard, ArrowRight, Loader2, Smartphone, Check, Sp
 import { getTransferByKey, getDownloadUrl } from '../services/api';
 import { useTransfer } from '../context/TransferContext';
 import { formatBytes } from '../utils/formatters';
+import QRScannerModal from './QRScannerModal';
 
 export default function ReceiveCard({ className = '', onReceiveSuccess = null }) {
   const [keyInput, setKeyInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(null); // { files: [], key: '' }
   const { setActiveModal, addToast, addToHistory } = useTransfer();
 
@@ -122,14 +124,25 @@ export default function ReceiveCard({ className = '', onReceiveSuccess = null })
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={handlePaste}
-            className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200/80 px-2.5 py-1 rounded-lg transition-colors"
-          >
-            <Clipboard className="w-3.5 h-3.5 text-slate-500" />
-            <span>Paste</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsScannerOpen(true)}
+              className="flex items-center gap-1.5 text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100/80 px-2.5 py-1.5 rounded-lg transition-colors border border-rose-200/80 shadow-2xs"
+            >
+              <QrCode className="w-3.5 h-3.5 text-rose-500" />
+              <span>Scan QR</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handlePaste}
+              className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200/80 px-2.5 py-1.5 rounded-lg transition-colors"
+            >
+              <Clipboard className="w-3.5 h-3.5 text-slate-500" />
+              <span>Paste</span>
+            </button>
+          </div>
         </div>
 
         {/* 6-Digit Key Input Box */}
@@ -243,6 +256,17 @@ export default function ReceiveCard({ className = '', onReceiveSuccess = null })
           Transfers directly through cloud relay across any distance. No account needed.
         </p>
       </div>
+
+      {/* QR Code In-App Camera Scanner Modal */}
+      <QRScannerModal
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        onScanSuccess={(scannedKey) => {
+          setKeyInput(scannedKey);
+          addToast(`QR Code scanned! Key: ${scannedKey}. Auto-downloading...`, 'success');
+          executeAutoDownload(scannedKey);
+        }}
+      />
     </div>
   );
 }
