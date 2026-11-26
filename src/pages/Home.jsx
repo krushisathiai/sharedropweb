@@ -96,78 +96,47 @@ export default function Home() {
 
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           
-          {/* Hero Section Header: Left [+ Send Files] | Center [Heading] | Right [Receive Files] */}
-          <div className="max-w-6xl mx-auto animate-fade-in">
-            {/* Global Cloud Relay Badge */}
-            <div className="text-center mb-3 sm:mb-4">
+          {/* Hero Section Banner Container */}
+          <div className="max-w-4xl mx-auto animate-fade-in">
+            <div className="bg-white/95 backdrop-blur-md rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-200/50 p-6 sm:p-10 text-center space-y-4 sm:space-y-5">
+              
+              {/* Global Cloud Relay Badge */}
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-[11px] sm:text-xs font-bold tracking-wide shadow-2xs animate-float">
                 <Globe className="w-3.5 h-3.5" />
                 <span>Global Cloud Relay • Works Across 4G / 5G / Wi-Fi Networks</span>
               </div>
-            </div>
 
-            {/* Desktop Flex Layout: Left [+ Send] | Center [Heading & Subtitle] | Right [Receive] */}
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4 lg:gap-6">
-              
-              {/* Left Side: + Send Files Button */}
-              <div className="hidden md:flex shrink-0">
+              {/* Title */}
+              <h1 className="text-xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-snug max-w-2xl mx-auto">
+                Transfer Any <span className="text-rose-500">Video & Document</span> Across Devices Instantly
+              </h1>
+
+              {/* Subtitle */}
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xl mx-auto">
+                No shared Wi-Fi required! Upload from one phone, enter the 6-digit key on another device, and download in original quality.
+              </p>
+
+              {/* User-Friendly Dual Quick Action Buttons (1 Crisp Icon Each) */}
+              <div className="flex items-center justify-center gap-3 sm:gap-4 pt-2">
                 <button
                   type="button"
                   onClick={() => scrollToTransfer('send')}
-                  className="inline-flex items-center gap-2 px-4 lg:px-5 py-3 rounded-2xl font-bold text-xs sm:text-sm text-white bg-rose-500 hover:bg-rose-600 shadow-lg shadow-rose-500/25 transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                  title="Scroll to Send Files"
+                  className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 rounded-2xl font-bold text-xs sm:text-sm text-white bg-rose-500 hover:bg-rose-600 shadow-md shadow-rose-500/25 transition-all hover:scale-105 active:scale-95 cursor-pointer"
                 >
-                  <Plus className="w-4 h-4 stroke-[3]" />
                   <Send className="w-4 h-4 -rotate-12" />
                   <span>Send Files</span>
                 </button>
-              </div>
 
-              {/* Center: Heading & Subtitle */}
-              <div className="text-center max-w-xl mx-auto space-y-2">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight leading-snug">
-                  Transfer Any <span className="text-rose-500">Video & Document</span> Across Devices Instantly
-                </h1>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-md mx-auto">
-                  No shared Wi-Fi required! Upload from one phone, enter the 6-digit key on another device, and download in original quality.
-                </p>
-              </div>
-
-              {/* Right Side: Receive Files Button */}
-              <div className="hidden md:flex shrink-0">
                 <button
                   type="button"
                   onClick={() => scrollToTransfer('receive')}
-                  className="inline-flex items-center gap-2 px-4 lg:px-5 py-3 rounded-2xl font-bold text-xs sm:text-sm text-slate-800 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200/90 shadow-md shadow-slate-200/50 transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                  title="Scroll to Receive Files"
+                  className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 rounded-2xl font-bold text-xs sm:text-sm text-slate-800 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200/90 shadow-md shadow-slate-200/50 transition-all hover:scale-105 active:scale-95 cursor-pointer"
                 >
                   <Download className="w-4 h-4 text-slate-700" />
                   <span>Receive Files</span>
                 </button>
               </div>
 
-            </div>
-
-            {/* Mobile View: Clean side-by-side buttons on mobile screens */}
-            <div className="flex md:hidden items-center justify-center gap-2.5 pt-3">
-              <button
-                type="button"
-                onClick={() => scrollToTransfer('send')}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-2xl font-bold text-xs text-white bg-rose-500 hover:bg-rose-600 shadow-md shadow-rose-500/25 active:scale-95 cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5 stroke-[3]" />
-                <Send className="w-3.5 h-3.5 -rotate-12" />
-                <span>Send Files</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => scrollToTransfer('receive')}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-2xl font-bold text-xs text-slate-800 bg-white border border-slate-200/90 shadow-md shadow-slate-200/50 active:scale-95 cursor-pointer"
-              >
-                <Download className="w-3.5 h-3.5 text-slate-700" />
-                <span>Receive Files</span>
-              </button>
             </div>
           </div>
 
