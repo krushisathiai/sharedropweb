@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   Send,
   Download,
+  Plus,
   Zap,
   ShieldCheck,
   Smartphone,
@@ -95,38 +96,76 @@ export default function Home() {
 
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           
-          {/* Hero Headings */}
-          <div className="text-center max-w-3xl mx-auto space-y-3 sm:space-y-4 animate-fade-in">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-[11px] sm:text-xs font-bold tracking-wide shadow-2xs animate-float">
-              <Globe className="w-3.5 h-3.5" />
-              <span>Global Cloud Relay • Works Across 4G / 5G / Wi-Fi Networks</span>
+          {/* Hero Section Header: Left [+ Send Files] | Center [Heading] | Right [Receive Files] */}
+          <div className="max-w-6xl mx-auto animate-fade-in">
+            {/* Global Cloud Relay Badge */}
+            <div className="text-center mb-3 sm:mb-4">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-[11px] sm:text-xs font-bold tracking-wide shadow-2xs animate-float">
+                <Globe className="w-3.5 h-3.5" />
+                <span>Global Cloud Relay • Works Across 4G / 5G / Wi-Fi Networks</span>
+              </div>
             </div>
 
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-snug">
-              Transfer Any <span className="text-rose-500">Video & Document</span> Across Devices Instantly
-            </h1>
+            {/* Desktop Flex Layout: Left [+ Send] | Center [Heading & Subtitle] | Right [Receive] */}
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 lg:gap-6">
+              
+              {/* Left Side: + Send Files Button */}
+              <div className="hidden md:flex shrink-0">
+                <button
+                  type="button"
+                  onClick={() => scrollToTransfer('send')}
+                  className="inline-flex items-center gap-2 px-4 lg:px-5 py-3 rounded-2xl font-bold text-xs sm:text-sm text-white bg-rose-500 hover:bg-rose-600 shadow-lg shadow-rose-500/25 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                  title="Scroll to Send Files"
+                >
+                  <Plus className="w-4 h-4 stroke-[3]" />
+                  <Send className="w-4 h-4 -rotate-12" />
+                  <span>Send Files</span>
+                </button>
+              </div>
 
-            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xl mx-auto px-1">
-              No shared Wi-Fi required! Upload from one phone, enter the 6-digit key on another mobile or PC on any network, and download immediately in 100% original quality.
-            </p>
+              {/* Center: Heading & Subtitle */}
+              <div className="text-center max-w-xl mx-auto space-y-2">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight leading-snug">
+                  Transfer Any <span className="text-rose-500">Video & Document</span> Across Devices Instantly
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-md mx-auto">
+                  No shared Wi-Fi required! Upload from one phone, enter the 6-digit key on another device, and download in original quality.
+                </p>
+              </div>
 
-            {/* Quick Action Navigation Buttons (Left: Send Files, Right: Receive Files) */}
-            <div className="flex items-center justify-center gap-2.5 sm:gap-4 pt-1">
+              {/* Right Side: Receive Files Button */}
+              <div className="hidden md:flex shrink-0">
+                <button
+                  type="button"
+                  onClick={() => scrollToTransfer('receive')}
+                  className="inline-flex items-center gap-2 px-4 lg:px-5 py-3 rounded-2xl font-bold text-xs sm:text-sm text-slate-800 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200/90 shadow-md shadow-slate-200/50 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                  title="Scroll to Receive Files"
+                >
+                  <Download className="w-4 h-4 text-slate-700" />
+                  <span>Receive Files</span>
+                </button>
+              </div>
+
+            </div>
+
+            {/* Mobile View: Clean side-by-side buttons on mobile screens */}
+            <div className="flex md:hidden items-center justify-center gap-2.5 pt-3">
               <button
                 type="button"
                 onClick={() => scrollToTransfer('send')}
-                className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-2xl font-bold text-xs sm:text-sm text-white bg-rose-500 hover:bg-rose-600 shadow-md shadow-rose-500/25 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-2xl font-bold text-xs text-white bg-rose-500 hover:bg-rose-600 shadow-md shadow-rose-500/25 active:scale-95 cursor-pointer"
               >
-                <Send className="w-4 h-4" />
+                <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                <Send className="w-3.5 h-3.5 -rotate-12" />
                 <span>Send Files</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => scrollToTransfer('receive')}
-                className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-2xl font-bold text-xs sm:text-sm text-slate-800 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200/90 shadow-md shadow-slate-200/50 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-2xl font-bold text-xs text-slate-800 bg-white border border-slate-200/90 shadow-md shadow-slate-200/50 active:scale-95 cursor-pointer"
               >
-                <Download className="w-4 h-4 text-slate-700" />
+                <Download className="w-3.5 h-3.5 text-slate-700" />
                 <span>Receive Files</span>
               </button>
             </div>
