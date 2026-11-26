@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Send,
-  Download,
   Zap,
   ShieldCheck,
   Smartphone,
@@ -89,42 +87,18 @@ export default function Home() {
           
           {/* Hero Headings */}
           <div className="text-center max-w-3xl mx-auto space-y-3 sm:space-y-4 animate-fade-in">
-            {/* Global Relay Badge */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-[11px] sm:text-xs font-bold tracking-wide shadow-2xs animate-float">
               <Globe className="w-3.5 h-3.5" />
               <span>Global Cloud Relay • Works Across 4G / 5G / Wi-Fi Networks</span>
             </div>
 
-            {/* Concise Title with Send & Receive Icons */}
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
-              <span className="inline-flex items-center justify-center w-8 h-8 sm:w-11 sm:h-11 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 shadow-xs" title="Send Files">
-                <Send className="w-4 h-4 sm:w-5 sm:h-5 -rotate-12" />
-              </span>
-              <span>
-                Send & Receive <span className="text-rose-500">Files Instantly</span>
-              </span>
-              <span className="inline-flex items-center justify-center w-8 h-8 sm:w-11 sm:h-11 rounded-2xl bg-slate-900 border border-slate-800 text-white shadow-xs" title="Receive Files">
-                <Download className="w-4 h-4 sm:w-5 sm:h-5" />
-              </span>
+            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.2]">
+              Transfer Any <span className="text-rose-500">Video & Document</span> Across Devices Instantly
             </h1>
 
-            {/* Subtitle */}
             <p className="text-xs sm:text-base text-slate-600 leading-relaxed max-w-2xl mx-auto px-1">
-              Transfer videos, documents & photos between any phone and computer across any network with a simple 6-digit key.
+              No shared Wi-Fi required! Upload from one phone, enter the 6-digit key on another mobile or PC on any network, and download immediately in 100% original quality.
             </p>
-
-            {/* Intuitive 2-Step Workflow Indicator */}
-            <div className="inline-flex items-center justify-center gap-2 sm:gap-3 pt-1">
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200/80 text-rose-700 text-xs font-bold shadow-2xs">
-                <Send className="w-3.5 h-3.5 text-rose-600" />
-                <span>1. Send & Get Key</span>
-              </div>
-              <span className="text-slate-300 font-bold text-xs">➔</span>
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200/80 text-slate-800 text-xs font-bold shadow-2xs">
-                <Download className="w-3.5 h-3.5 text-slate-900" />
-                <span>2. Enter Key & Download</span>
-              </div>
-            </div>
           </div>
 
           {/* Dual Card Section (Send & Receive) */}
