@@ -123,18 +123,37 @@ app.get('/api/health', (req, res) => {
 
 // 2. Upload endpoint: Receives files from Sender (Any network / 4G / 5G / WiFi)
 app.post('/api/upload', (req, res) => {
-  const key = generateUniqueKey();
+  const headerKey = req.headers['x-transfer-key'] ? req.headers['x-transfer-key'].toString().trim() : null;
+  const key = (headerKey && /^\d{6}$/.test(headerKey)) ? headerKey : generateUniqueKey();
   req.headers['x-transfer-key'] = key;
+
+  // Immediately register key as uploading so receiver won't get 404 if entered right away
+  if (!transfers.has(key)) {
+    transfers.set(key, {
+      key,
+      status: 'uploading',
+      files: [],
+      totalSize: 0,
+      createdAt: Date.now(),
+      expiresAt: Date.now() + 10 * 60 * 1000,
+      downloadCount: 0,
+      senderIp: req.ip || req.headers['x-forwarded-for'] || 'Remote Device',
+      userId: req.user ? req.user.id : null,
+      userEmail: req.user ? req.user.email : null
+    });
+  }
 
   const uploadMiddleware = upload.array('files', 50);
 
   uploadMiddleware(req, res, (err) => {
     if (err) {
       console.error('[Upload Error]:', err);
+      transfers.delete(key);
       return res.status(400).json({ success: false, message: err.message });
     }
 
     if (!req.files || req.files.length === 0) {
+      transfers.delete(key);
       return res.status(400).json({ success: false, message: 'No files received' });
     }
 
@@ -154,6 +173,7 @@ app.post('/api/upload', (req, res) => {
 
     const transferData = {
       key,
+      status: 'ready',
       files: filesMeta,
       totalSize,
       createdAt: Date.now(),
@@ -288,10 +308,28 @@ app.get('/api/transfer/:key', (req, res) => {
     });
   }
 
+  // If transfer is still in the process of uploading from sender
+  if (transfer.status === 'uploading') {
+    return res.json({
+      success: true,
+      transfer: {
+        key: transfer.key,
+        status: 'uploading',
+        files: transfer.files ? transfer.files.map(f => ({ id: f.id, name: f.name, size: f.size, mimetype: f.mimetype })) : [],
+        totalSize: transfer.totalSize || 0,
+        createdAt: transfer.createdAt,
+        expiresAt: transfer.expiresAt,
+        downloadCount: 0,
+        message: 'Sender is finalizing file upload. Please wait a moment...'
+      }
+    });
+  }
+
   res.json({
     success: true,
     transfer: {
       key: transfer.key,
+      status: 'ready',
       files: transfer.files.map(f => ({
         id: f.id,
         name: f.name,
@@ -320,6 +358,10 @@ app.get('/api/download/:key/:fileId', (req, res) => {
     deleteTransferFiles(key);
     transfers.delete(key);
     return res.status(410).send('Transfer has expired.');
+  }
+
+  if (transfer.status === 'uploading') {
+    return res.status(425).send('File is still uploading by sender. Please wait a few seconds and try again.');
   }
 
   const fileMeta = transfer.files.find(f => f.id === fileId);

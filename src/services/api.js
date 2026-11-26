@@ -13,120 +13,7 @@ const clientSimulatedStore = new Map();
 
 // ----------------- File Transfer API -----------------
 
-// High-speed Chunked Streaming Upload for large files (supports GBs without timeout)
-async function uploadFilesChunked(files, durationMinutes, onProgress) {
-  const CHUNK_SIZE = 3 * 1024 * 1024; // 3MB chunks (fast, reliable on Render)
-  const key = Math.floor(100000 + Math.random() * 900000).toString();
-  const totalBytes = files.reduce((acc, f) => acc + f.size, 0);
-  let totalUploaded = 0;
-  const startTime = Date.now();
-  let lastResult = null;
-
-  for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
-    const file = files[fileIndex];
-    const totalChunks = Math.max(1, Math.ceil(file.size / CHUNK_SIZE));
-
-    for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
-      const start = chunkIndex * CHUNK_SIZE;
-      const end = Math.min(file.size, start + CHUNK_SIZE);
-      const chunkBlob = file.slice(start, end);
-
-      const formData = new FormData();
-      formData.append('chunk', chunkBlob, file.name);
-      formData.append('key', key);
-      formData.append('fileId', fileIndex.toString());
-      formData.append('chunkIndex', chunkIndex.toString());
-      formData.append('totalChunks', totalChunks.toString());
-      formData.append('fileName', file.name);
-      formData.append('fileSize', file.size.toString());
-      formData.append('mimetype', file.type || 'application/octet-stream');
-      formData.append('durationMinutes', durationMinutes.toString());
-
-      // Attempt upload with up to 3 retries for high stability
-      let attempt = 0;
-      let success = false;
-      let resJson = null;
-
-      while (attempt < 3 && !success) {
-        attempt++;
-        try {
-          const res = await fetch(`${API_BASE}/upload/chunk`, {
-            method: 'POST',
-            headers: {
-              ...getAuthHeader(),
-            },
-            body: formData,
-          });
-
-          if (res.ok) {
-            resJson = await res.json();
-            success = true;
-          } else {
-            const err = await res.json().catch(() => ({}));
-            throw new Error(err.message || `Server status ${res.status}`);
-          }
-        } catch (fetchErr) {
-          if (attempt >= 3) throw fetchErr;
-          await new Promise((r) => setTimeout(r, 800));
-        }
-      }
-
-      totalUploaded += (end - start);
-      const elapsedSeconds = Math.max(0.1, (Date.now() - startTime) / 1000);
-      const speedBytesPerSec = totalUploaded / elapsedSeconds;
-      const percent = Math.min(99, Math.round((totalUploaded / totalBytes) * 100));
-
-      if (onProgress) {
-        onProgress({
-          percent,
-          loaded: totalUploaded,
-          total: totalBytes,
-          speed: speedBytesPerSec,
-        });
-      }
-
-      if (resJson && resJson.completed) {
-        lastResult = resJson;
-      }
-    }
-  }
-
-  if (onProgress) {
-    onProgress({
-      percent: 100,
-      loaded: totalBytes,
-      total: totalBytes,
-      speed: 0,
-    });
-  }
-
-  if (lastResult) {
-    return lastResult;
-  }
-
-  return {
-    success: true,
-    key,
-    fileCount: files.length,
-    files: files.map((f, idx) => ({ id: idx.toString(), name: f.name, size: f.size, mimetype: f.type })),
-    totalSize: totalBytes,
-    expiresAt: Date.now() + durationMinutes * 60 * 1000,
-    shareUrl: `/receive?key=${key}`,
-  };
-}
-
-export async function uploadFiles(files, durationMinutes = 10, onProgress = null) {
-  const totalBytes = files.reduce((acc, f) => acc + f.size, 0);
-
-  // If files total size > 4MB, use Chunked Upload for fast streaming without timeouts
-  if (totalBytes > 4 * 1024 * 1024) {
-    try {
-      return await uploadFilesChunked(files, durationMinutes, onProgress);
-    } catch (err) {
-      console.warn('Chunked upload failed, trying standard direct upload:', err.message);
-    }
-  }
-
+export async function uploadFiles(files, durationMinutes = 10, onProgress = null, targetKey = null) {
   try {
     const formData = new FormData();
     files.forEach((file) => {
@@ -134,11 +21,16 @@ export async function uploadFiles(files, durationMinutes = 10, onProgress = null
     });
     formData.append('durationMinutes', durationMinutes.toString());
 
+    const keyToUse = targetKey || Math.floor(100000 + Math.random() * 900000).toString();
+
     if (onProgress) {
       return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open('POST', `${API_BASE}/upload`);
         const startTime = Date.now();
+
+        // Attach target 6-digit key so client and server share the exact same key instantly
+        xhr.setRequestHeader('x-transfer-key', keyToUse);
 
         // Attach optional auth token
         const token = localStorage.getItem('sharedrop_auth_token');
@@ -148,7 +40,7 @@ export async function uploadFiles(files, durationMinutes = 10, onProgress = null
 
         xhr.upload.onprogress = (event) => {
           if (event.lengthComputable) {
-            const percent = Math.round((event.loaded / event.total) * 100);
+            const percent = Math.min(99, Math.round((event.loaded / event.total) * 100));
             const elapsed = Math.max(0.1, (Date.now() - startTime) / 1000);
             const speed = event.loaded / elapsed;
             onProgress({
@@ -164,6 +56,12 @@ export async function uploadFiles(files, durationMinutes = 10, onProgress = null
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
               const res = JSON.parse(xhr.responseText);
+              onProgress({
+                percent: 100,
+                loaded: files.reduce((acc, f) => acc + f.size, 0),
+                total: files.reduce((acc, f) => acc + f.size, 0),
+                speed: 0,
+              });
               resolve(res);
             } catch (e) {
               reject(new Error('Invalid response from server'));
@@ -180,7 +78,7 @@ export async function uploadFiles(files, durationMinutes = 10, onProgress = null
 
         xhr.onerror = () => {
           console.warn('Backend server not reachable, using client storage fallback.');
-          resolve(simulateClientUpload(files, durationMinutes));
+          resolve(simulateClientUpload(files, durationMinutes, keyToUse));
         };
 
         xhr.send(formData);
@@ -190,6 +88,7 @@ export async function uploadFiles(files, durationMinutes = 10, onProgress = null
     const res = await fetch(`${API_BASE}/upload`, {
       method: 'POST',
       headers: {
+        'x-transfer-key': keyToUse,
         ...getAuthHeader(),
       },
       body: formData,
@@ -203,7 +102,7 @@ export async function uploadFiles(files, durationMinutes = 10, onProgress = null
     return await res.json();
   } catch (error) {
     console.warn('Upload API failed, using fallback:', error.message);
-    return simulateClientUpload(files, durationMinutes);
+    return simulateClientUpload(files, durationMinutes, targetKey);
   }
 }
 
@@ -355,8 +254,10 @@ export async function apiLogout() {
 }
 
 // Helper: client fallback for demo
-function simulateClientUpload(files, durationMinutes) {
-  const key = Math.floor(100000 + Math.random() * 900000).toString();
+function simulateClientUpload(files, durationMinutes, targetKey = null) {
+  const key = (targetKey && /^\d{6}$/.test(targetKey))
+    ? targetKey
+    : Math.floor(100000 + Math.random() * 900000).toString();
   const expiresAt = Date.now() + durationMinutes * 60 * 1000;
 
   const filesMeta = files.map((f, idx) => ({

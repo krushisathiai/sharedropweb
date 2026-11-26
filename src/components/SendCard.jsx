@@ -16,7 +16,7 @@ export default function SendCard({ className = '', onTransferComplete = null }) 
   const [durationMinutes, setDurationMinutes] = useState(10);
   const fileInputRef = useRef(null);
 
-  const { setActiveModal, addToHistory, addToast } = useTransfer();
+  const { setActiveModal, addToHistory, addToast, updateModalData } = useTransfer();
   const { isAuthenticated } = useAuth();
 
   const validityOptions = isAuthenticated
@@ -68,55 +68,90 @@ export default function SendCard({ className = '', onTransferComplete = null }) 
       return;
     }
 
+    const filesToSend = [...selectedFiles];
+    const totalBytes = filesToSend.reduce((acc, f) => acc + f.size, 0);
+
+    // 1. Generate 6-digit key INSTANTLY in 1 millisecond
+    const instantKey = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + durationMinutes * 60 * 1000;
+    const filesMeta = filesToSend.map((f) => ({ name: f.name, size: f.size, mimetype: f.type }));
+
+    // 2. Open KeyDisplayModal IMMEDIATELY in 1 click!
+    const modalData = {
+      key: instantKey,
+      files: filesMeta,
+      totalSize: totalBytes,
+      expiresAt,
+      isUploading: true,
+      uploadProgress: 0,
+      uploadSpeed: 'Connecting...',
+    };
+
+    setActiveModal({
+      type: 'key',
+      data: modalData,
+    });
+
+    if (onTransferComplete) {
+      onTransferComplete(modalData);
+    }
+
+    // Reset card selection right away
+    setSelectedFiles([]);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+
+    addToast(`Key generated: ${instantKey}! Uploading in background...`, 'success');
+
+    // 3. Upload files to cloud relay in the background with live progress updates
     try {
       setIsUploading(true);
       setUploadProgress(0);
       setUploadStats({ percent: 0, loaded: 0, total: totalBytes, speed: 0 });
 
-      const result = await uploadFiles(selectedFiles, durationMinutes, (progress) => {
-        if (typeof progress === 'number') {
-          setUploadProgress(progress);
-        } else if (progress && typeof progress === 'object') {
-          setUploadProgress(progress.percent || 0);
-          setUploadStats(progress);
-        }
+      await uploadFiles(
+        filesToSend,
+        durationMinutes,
+        (progress) => {
+          if (typeof progress === 'number') {
+            setUploadProgress(progress);
+            updateModalData({ uploadProgress: progress });
+          } else if (progress && typeof progress === 'object') {
+            const percent = progress.percent || 0;
+            const speedFormatted = progress.speed ? `${formatBytes(progress.speed)}/s` : '';
+            setUploadProgress(percent);
+            setUploadStats(progress);
+            updateModalData({
+              uploadProgress: percent,
+              uploadSpeed: speedFormatted,
+            });
+          }
+        },
+        instantKey
+      );
+
+      // Finished upload successfully
+      updateModalData({
+        isUploading: false,
+        uploadProgress: 100,
+        uploadSpeed: 'Done',
       });
 
-      setUploadProgress(100);
-
-      // Save to recent history
+      // Save to recent history for logged in user
       addToHistory({
-        key: result.key,
+        key: instantKey,
         type: 'sent',
-        files: selectedFiles.map((f) => ({ name: f.name, size: f.size, mimetype: f.type })),
+        files: filesMeta,
         totalSize: totalBytes,
-        expiresAt: result.expiresAt,
+        expiresAt,
       });
 
-      addToast(`Transfer key generated: ${result.key}`, 'success');
-
-      // Open Key Display Modal
-      const modalData = {
-        key: result.key,
-        files: selectedFiles.map((f) => ({ name: f.name, size: f.size, mimetype: f.type })),
-        totalSize: totalBytes,
-        expiresAt: result.expiresAt,
-      };
-
-      setActiveModal({
-        type: 'key',
-        data: modalData,
-      });
-
-      if (onTransferComplete) {
-        onTransferComplete(modalData);
-      }
-
-      // Reset card selection
-      setSelectedFiles([]);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      addToast(`Upload complete for key: ${instantKey}`, 'success');
     } catch (err) {
       console.error(err);
+      updateModalData({
+        uploadError: err.message || 'Upload failed',
+        isUploading: false,
+      });
       addToast(err.message || 'Failed to send files', 'error');
     } finally {
       setIsUploading(false);

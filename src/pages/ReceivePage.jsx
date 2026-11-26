@@ -64,10 +64,19 @@ export default function ReceivePage() {
         try {
           setLoading(true);
           setError(null);
-          const data = await getTransferByKey(urlKey);
+          let data = await getTransferByKey(urlKey);
+          let attempts = 0;
+          while (data && data.status === 'uploading' && attempts < 40) {
+            setTransferData(data);
+            await new Promise((r) => setTimeout(r, 2000));
+            data = await getTransferByKey(urlKey);
+            attempts++;
+          }
           setTransferData(data);
           // AUTOMATIC DOWNLOAD IMMEDIATELY:
-          await triggerAutoDownload(data);
+          if (data && data.files && data.files.length > 0) {
+            await triggerAutoDownload(data);
+          }
         } catch (err) {
           setError(err.message || 'Key invalid or expired');
           addToast(err.message || 'Failed to load transfer', 'error');

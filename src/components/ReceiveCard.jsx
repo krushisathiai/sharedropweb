@@ -22,7 +22,18 @@ export default function ReceiveCard({ className = '', onReceiveSuccess = null })
       setDownloadSuccess(null);
 
       // 1. Fetch file info from central cloud server
-      const transfer = await getTransferByKey(cleanKey);
+      let transfer = await getTransferByKey(cleanKey);
+      let attempts = 0;
+      while (transfer && transfer.status === 'uploading' && attempts < 40) {
+        addToast('Sender is finalizing upload... waiting a moment', 'info');
+        await new Promise((r) => setTimeout(r, 2000));
+        transfer = await getTransferByKey(cleanKey);
+        attempts++;
+      }
+
+      if (!transfer || !transfer.files || transfer.files.length === 0) {
+        throw new Error('No files ready for download yet. Please try again in a few seconds.');
+      }
 
       // 2. AUTOMATIC DOWNLOAD: Trigger browser download for every file immediately!
       for (let i = 0; i < transfer.files.length; i++) {

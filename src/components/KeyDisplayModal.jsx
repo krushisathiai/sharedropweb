@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { X, Copy, Check, Clock, Share2, Smartphone, Download, ShieldCheck, Globe } from 'lucide-react';
+import { X, Copy, Check, Clock, Share2, Smartphone, Download, ShieldCheck, Globe, Loader2, CheckCircle } from 'lucide-react';
 import { formatBytes, formatKey, formatTimeRemaining } from '../utils/formatters';
 import { FileIcon, FileTypeBadge } from '../utils/fileIcons';
 import { useTransfer } from '../context/TransferContext';
@@ -70,6 +70,59 @@ export default function KeyDisplayModal({ data, onClose }) {
 
         {/* Body */}
         <div className="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-6">
+
+          {/* Live Background Upload Status Bar (Instant 1-Click Key Workflow) */}
+          {data.isUploading !== undefined && (
+            <div
+              className={`p-3.5 rounded-2xl border transition-all ${
+                data.uploadProgress < 100
+                  ? 'bg-rose-50/70 border-rose-200'
+                  : 'bg-emerald-50 border-emerald-200'
+              }`}
+            >
+              <div className="flex items-center justify-between text-xs font-bold mb-1.5">
+                <div className="flex items-center gap-2">
+                  {data.uploadProgress < 100 ? (
+                    <>
+                      <Loader2 className="w-4 h-4 text-rose-500 animate-spin" />
+                      <span className="text-rose-800">
+                        Uploading to Cloud: {data.uploadProgress}%
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-4 h-4 text-emerald-600" />
+                      <span className="text-emerald-800">
+                        Files 100% Uploaded & Ready!
+                      </span>
+                    </>
+                  )}
+                </div>
+
+                {data.uploadSpeed && (
+                  <span className="text-xs font-mono font-bold text-slate-700 bg-white/80 px-2 py-0.5 rounded-md border border-slate-200/60 shadow-2xs">
+                    {data.uploadSpeed}
+                  </span>
+                )}
+              </div>
+
+              {/* Progress track */}
+              <div className="w-full bg-slate-200/70 rounded-full h-2 overflow-hidden">
+                <div
+                  className={`h-full transition-all duration-300 rounded-full ${
+                    data.uploadProgress < 100 ? 'bg-rose-500' : 'bg-emerald-500'
+                  }`}
+                  style={{ width: `${Math.max(4, data.uploadProgress || 0)}%` }}
+                />
+              </div>
+
+              {data.uploadProgress < 100 && (
+                <p className="text-[11px] text-slate-600 mt-2 font-medium">
+                  ⚡ <strong>Key Generated in 1-Click:</strong> You can copy or share this 6-digit key immediately. Upload is streaming in the background!
+                </p>
+              )}
+            </div>
+          )}
           
           {/* Big 6-Digit Key Box */}
           <div className="text-center space-y-1.5 sm:space-y-2">

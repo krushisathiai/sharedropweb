@@ -13,6 +13,20 @@ export function TransferProvider({ children }) {
   // Active modal state
   const [activeModal, setActiveModal] = useState(null);
 
+  // Update data inside activeModal without closing or resetting the modal
+  const updateModalData = (partialData) => {
+    setActiveModal((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        data: {
+          ...prev.data,
+          ...partialData,
+        },
+      };
+    });
+  };
+
   // Server & Network info
   const [serverInfo, setServerInfo] = useState({
     status: 'checking',
@@ -123,6 +137,7 @@ export function TransferProvider({ children }) {
         clearHistory,
         activeModal,
         setActiveModal,
+        updateModalData,
         serverInfo,
         toasts,
         addToast,
