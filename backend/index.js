@@ -17,14 +17,16 @@ const PORT = process.env.PORT || 5000;
 // Initialize Neon PostgreSQL database schema on startup
 initDb().catch((err) => console.error('[Neon DB Init Failed]:', err.message));
 
-// Enable CORS for all origins so any mobile device on ANY network (4G/5G/WiFi) can access
+// Enable CORS with max-age caching to avoid slow OPTIONS preflights on every upload
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'x-transfer-key', 'Authorization']
+  allowedHeaders: ['Content-Type', 'x-transfer-key', 'Authorization', 'Cache-Control', 'X-Requested-With', 'x-chunk-index', 'x-total-chunks', 'x-file-name', 'x-file-id'],
+  maxAge: 86400
 }));
 
-app.use(express.json());
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ limit: '100mb', extended: true }));
 // Optional authentication: extracts req.user if token provided, but never blocks anonymous users!
 app.use(optionalAuthMiddleware);
 app.use('/api/auth', authRouter);
@@ -63,7 +65,17 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   limits: {
-    fileSize: 1024 * 1024 * 1024 * 5 // 5 GB limit per file for large videos & documents
+    fileSize: 1024 * 1024 * 1024 * 10, // 10 GB limit per file for large videos & documents
+    fieldSize: 1024 * 1024 * 50,
+    files: 100
+  }
+});
+
+// In-memory slice receiver for high-speed multi-GB chunked streaming
+const chunkUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 1024 * 1024 * 50 // Up to 50MB per slice
   }
 });
 
@@ -165,6 +177,94 @@ app.post('/api/upload', (req, res) => {
       shareUrl: `/receive?key=${key}`
     });
   });
+});
+
+// 2b. High-Speed Chunked Streaming Upload (Supports GBs of large videos without timeout)
+app.post('/api/upload/chunk', chunkUpload.single('chunk'), async (req, res) => {
+  try {
+    const key = req.body.key;
+    const fileId = req.body.fileId || '0';
+    const chunkIndex = parseInt(req.body.chunkIndex, 10);
+    const totalChunks = parseInt(req.body.totalChunks, 10);
+    const fileName = req.body.fileName;
+    const fileSize = parseInt(req.body.fileSize, 10);
+    const mimetype = req.body.mimetype || 'application/octet-stream';
+    const durationMinutes = parseInt(req.body.durationMinutes || 10, 10);
+
+    if (!key || !req.file || isNaN(chunkIndex)) {
+      return res.status(400).json({ success: false, message: 'Invalid chunk data' });
+    }
+
+    const transferDir = path.join(UPLOADS_DIR, key);
+    if (!fs.existsSync(transferDir)) {
+      fs.mkdirSync(transferDir, { recursive: true });
+    }
+
+    // Safe filename on disk
+    const safeBase = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const safeFileName = `${fileId}-${safeBase}`;
+    const filePath = path.join(transferDir, safeFileName);
+
+    // Append chunk buffer to target file on disk
+    fs.appendFileSync(filePath, req.file.buffer);
+
+    // If final chunk of file received
+    if (chunkIndex === totalChunks - 1) {
+      let transfer = transfers.get(key);
+      const fileMeta = {
+        id: fileId,
+        name: fileName,
+        size: fileSize,
+        mimetype,
+        filename: safeFileName,
+        path: filePath,
+      };
+
+      if (!transfer) {
+        const expiresAt = Date.now() + durationMinutes * 60 * 1000;
+        transfer = {
+          key,
+          files: [fileMeta],
+          totalSize: fileSize,
+          createdAt: Date.now(),
+          expiresAt,
+          downloadCount: 0,
+          senderIp: req.ip || req.headers['x-forwarded-for'] || 'Remote Device',
+          userId: req.user ? req.user.id : null,
+          userEmail: req.user ? req.user.email : null,
+        };
+        transfers.set(key, transfer);
+      } else {
+        if (!transfer.files.some(f => f.id === fileId)) {
+          transfer.files.push(fileMeta);
+          transfer.totalSize += fileSize;
+        }
+      }
+
+      console.log(`[Chunked Upload Complete] Key: ${key} | File: "${fileName}" | Size: ${(fileSize / 1024 / 1024).toFixed(2)} MB`);
+
+      return res.json({
+        success: true,
+        completed: true,
+        key,
+        fileCount: transfer.files.length,
+        expiresAt: transfer.expiresAt,
+        totalSize: transfer.totalSize,
+        shareUrl: `/receive?key=${key}`
+      });
+    }
+
+    // Non-final chunk saved
+    res.json({
+      success: true,
+      completed: false,
+      chunkIndex,
+      totalChunks,
+    });
+  } catch (err) {
+    console.error('[Chunk Upload Error]:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
 
 // 3. Metadata endpoint: Receiver enters 6-digit key from ANY network in the world
@@ -281,10 +381,15 @@ if (fs.existsSync(distPath)) {
   console.log(`[Static Host] Serving production frontend build from ${distPath}`);
 }
 
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`=======================================================`);
   console.log(`🌐 SendAnywhere Global Transfer Server Started!`);
   console.log(`🚀 Port: ${PORT}`);
   console.log(`📡 Ready to transfer between different networks (4G/5G/WiFi)`);
   console.log(`=======================================================`);
 });
+
+// Configure 30-minute timeout and extended keep-alives for multi-GB uploads
+server.setTimeout(30 * 60 * 1000);
+server.keepAliveTimeout = 120000;
+server.headersTimeout = 125000;

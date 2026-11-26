@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
+  Send,
+  Download,
   Zap,
   ShieldCheck,
   Smartphone,
@@ -28,6 +30,14 @@ export default function Home() {
   const { serverInfo } = useTransfer();
   const [activeTab, setActiveTab] = useState('send');
   const [openFaq, setOpenFaq] = useState(0);
+
+  const scrollToTransfer = (tab) => {
+    setActiveTab(tab);
+    const element = document.getElementById('transfer-section');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   const faqs = [
     {
@@ -92,17 +102,38 @@ export default function Home() {
               <span>Global Cloud Relay • Works Across 4G / 5G / Wi-Fi Networks</span>
             </div>
 
-            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.2]">
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-snug">
               Transfer Any <span className="text-rose-500">Video & Document</span> Across Devices Instantly
             </h1>
 
-            <p className="text-xs sm:text-base text-slate-600 leading-relaxed max-w-2xl mx-auto px-1">
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xl mx-auto px-1">
               No shared Wi-Fi required! Upload from one phone, enter the 6-digit key on another mobile or PC on any network, and download immediately in 100% original quality.
             </p>
+
+            {/* Quick Action Navigation Buttons (Left: Send Files, Right: Receive Files) */}
+            <div className="flex items-center justify-center gap-2.5 sm:gap-4 pt-1">
+              <button
+                type="button"
+                onClick={() => scrollToTransfer('send')}
+                className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-2xl font-bold text-xs sm:text-sm text-white bg-rose-500 hover:bg-rose-600 shadow-md shadow-rose-500/25 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              >
+                <Send className="w-4 h-4" />
+                <span>Send Files</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => scrollToTransfer('receive')}
+                className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-2xl font-bold text-xs sm:text-sm text-slate-800 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200/90 shadow-md shadow-slate-200/50 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              >
+                <Download className="w-4 h-4 text-slate-700" />
+                <span>Receive Files</span>
+              </button>
+            </div>
           </div>
 
           {/* Dual Card Section (Send & Receive) */}
-          <div className="mt-8 sm:mt-12 max-w-5xl mx-auto animate-fade-in-delayed">
+          <div id="transfer-section" className="mt-8 sm:mt-12 max-w-5xl mx-auto animate-fade-in-delayed scroll-mt-24">
             {/* Mobile Tab Switcher */}
             <div className="flex sm:hidden p-1 bg-slate-200/80 rounded-xl mb-3 shadow-inner">
               <button

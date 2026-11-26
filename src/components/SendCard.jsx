@@ -12,6 +12,7 @@ export default function SendCard({ className = '', onTransferComplete = null }) 
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStats, setUploadStats] = useState({ percent: 0, loaded: 0, total: 0, speed: 0 });
   const [durationMinutes, setDurationMinutes] = useState(10);
   const fileInputRef = useRef(null);
 
@@ -69,10 +70,16 @@ export default function SendCard({ className = '', onTransferComplete = null }) 
 
     try {
       setIsUploading(true);
-      setUploadProgress(15);
+      setUploadProgress(0);
+      setUploadStats({ percent: 0, loaded: 0, total: totalBytes, speed: 0 });
 
       const result = await uploadFiles(selectedFiles, durationMinutes, (progress) => {
-        setUploadProgress(progress);
+        if (typeof progress === 'number') {
+          setUploadProgress(progress);
+        } else if (progress && typeof progress === 'object') {
+          setUploadProgress(progress.percent || 0);
+          setUploadStats(progress);
+        }
       });
 
       setUploadProgress(100);
@@ -269,19 +276,40 @@ export default function SendCard({ className = '', onTransferComplete = null }) 
 
         {/* Progress Bar when uploading */}
         {isUploading && (
-          <div className="space-y-1">
-            <div className="flex justify-between text-xs font-semibold text-slate-700">
-              <span className="flex items-center gap-1 text-rose-600">
-                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Preparing transfer...
+          <div className="space-y-1.5 p-3 rounded-2xl bg-rose-50/70 border border-rose-200/80">
+            <div className="flex justify-between items-center text-xs font-bold text-slate-800">
+              <span className="flex items-center gap-1.5 text-rose-600">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                {uploadProgress < 5
+                  ? 'Connecting to Central Relay...'
+                  : uploadProgress >= 100
+                  ? 'Finalizing 6-digit key...'
+                  : uploadStats.speed > 0
+                  ? `Uploading at ${formatBytes(uploadStats.speed)}/s`
+                  : 'Fast Streaming Transfer...'}
               </span>
-              <span>{uploadProgress}%</span>
+              <span className="font-mono text-rose-600 font-black">{uploadProgress}%</span>
             </div>
-            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+
+            <div className="w-full bg-rose-200/50 h-2.5 rounded-full overflow-hidden">
               <div
-                className="bg-rose-500 h-full rounded-full transition-all duration-300"
-                style={{ width: `${uploadProgress}%` }}
+                className="bg-gradient-to-r from-rose-500 to-rose-600 h-full rounded-full transition-all duration-200 shadow-xs"
+                style={{ width: `${Math.max(4, uploadProgress)}%` }}
               />
             </div>
+
+            {uploadStats.loaded > 0 && (
+              <div className="flex justify-between items-center text-[11px] text-slate-500 font-semibold pt-0.5">
+                <span>
+                  Transferred: {formatBytes(uploadStats.loaded)} / {formatBytes(uploadStats.total || totalBytes)}
+                </span>
+                {uploadStats.speed > 0 && uploadProgress < 100 && (
+                  <span>
+                    ETA: {Math.max(1, Math.round(((uploadStats.total || totalBytes) - uploadStats.loaded) / uploadStats.speed))}s
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         )}
 
